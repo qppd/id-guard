@@ -8,6 +8,26 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: false, error: "Missing credentials" }, { status: 400 });
     }
 
+    // Dev bypass: admin/admin = mock token (no TTLock API needed)
+    if (username === "admin" && password === "admin") {
+      const response = NextResponse.json({ ok: true, uid: 1 });
+      response.cookies.set("tt_token", "dev_mock_token", {
+        httpOnly: true,
+        secure: false,
+        sameSite: "lax",
+        maxAge: 7776000,
+        path: "/",
+      });
+      response.cookies.set("tt_refresh", "dev_mock_refresh", {
+        httpOnly: true,
+        secure: false,
+        sameSite: "lax",
+        maxAge: 7776000,
+        path: "/",
+      });
+      return response;
+    }
+
     // Dynamically import to avoid bundling server code
     const { login } = await import("@/lib/ttlock");
     const data = await login(username, password);

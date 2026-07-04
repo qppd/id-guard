@@ -130,6 +130,70 @@ export async function listKeys(accessToken: string) {
   }, accessToken);
 }
 
+// Gateway — list by lock
+export async function listGatewaysByLock(accessToken: string, lockId: number) {
+  return apiPost<{ list: Record<string, unknown>[] }>("/v3/gateway/listByLock", {
+    lockId: String(lockId),
+  }, accessToken);
+}
+
+// Passcode APIs
+export async function listPasscodes(accessToken: string, lockId: number) {
+  return apiPost<{ list: Record<string, unknown>[] }>("/v3/passcode/list", {
+    lockId: String(lockId),
+    pageNo: "1",
+    pageSize: "50",
+  }, accessToken);
+}
+
+export async function addPasscode(
+  accessToken: string,
+  lockId: number,
+  passcode: string,
+  type: number,
+  startDate?: number,
+  endDate?: number
+) {
+  const params: Record<string, string> = {
+    lockId: String(lockId),
+    passcode,
+    type: String(type),
+    addType: "2",
+  };
+  if (startDate) params.startDate = String(startDate);
+  if (endDate) params.endDate = String(endDate);
+  return apiPost<Record<string, unknown>>("/v3/passcode/add", params, accessToken);
+}
+
+export async function deletePasscode(accessToken: string, lockId: number, passcodeId: number) {
+  return apiPost<Record<string, unknown>>("/v3/passcode/delete", {
+    lockId: String(lockId),
+    passcodeId: String(passcodeId),
+  }, accessToken);
+}
+
+// Unlock records
+export async function listRecords(accessToken: string, lockId: number, page = 1, size = 50) {
+  return apiPost<{ list: Record<string, unknown>[]; total: number }>("/v3/record/list", {
+    lockId: String(lockId),
+    pageNo: String(page),
+    pageSize: String(size),
+  }, accessToken);
+}
+
+// Firmware upgrade
+export async function checkUpgrade(accessToken: string, lockId: number) {
+  return apiPost<{ needUpgrade: number; firmwareInfo?: string }>("/v3/lock/checkUpgrade", {
+    lockId: String(lockId),
+  }, accessToken);
+}
+
+export async function upgradeFirmware(accessToken: string, lockId: number) {
+  return apiPost<Record<string, unknown>>("/v3/lock/upgrade", {
+    lockId: String(lockId),
+  }, accessToken);
+}
+
 export async function sendKey(
   accessToken: string,
   lockId: number,

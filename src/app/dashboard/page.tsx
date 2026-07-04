@@ -5,11 +5,22 @@ import { useLocks } from "@/lib/hooks/useLocks";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import useSWR from "swr";
+import Link from "next/link";
+
+const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
 export default function DashboardPage() {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   const { locks, isLoading, error, toggleLock } = useLocks();
   const router = useRouter();
+
+  const { data: gwData } = useSWR<{ ok: boolean; data: { list: Record<string, unknown>[] } }>(
+    isAuthenticated ? "/api/gateways" : null,
+    fetcher
+  );
+
+  const gateways = gwData?.data?.list ?? [];
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
@@ -27,8 +38,26 @@ export default function DashboardPage() {
 
   if (!isAuthenticated) return null;
 
+  const onlineGateways = gateways.filter((g: Record<string, unknown>) => g.isOnline == 1);
+
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
+      {/* Summary cards */}
+      <div className="grid grid-cols-3 gap-4 mb-6">
+        <div className="bg-gray-900 border border-gray-800 rounded-lg p-4 text-center">
+          <p className="text-2xl font-bold text-white">{locks.length}</p>
+          <p className="text-xs text-gray-400 mt-1">Locks</p>
+        </div>
+        <div className="bg-gray-900 border border-gray-800 rounded-lg p-4 text-center">
+          <p className="text-2xl font-bold text-white">{gateways.length}</p>
+          <p className="text-xs text-gray-400 mt-1">Gateways</p>
+        </div>
+        <div className="bg-gray-900 border border-gray-800 rounded-lg p-4 text-center">
+          <p className="text-2xl font-bold text-white">{onlineGateways.length}</p>
+          <p className="text-xs text-gray-400 mt-1">Online</p>
+        </div>
+      </div>
+
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-white">Dashboard</h1>
@@ -61,16 +90,18 @@ export default function DashboardPage() {
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {locks.map((lock) => (
-          <LockCard
-            key={lock.lockId}
-            lockId={lock.lockId}
-            lockName={lock.lockName}
-            lockAlias={lock.lockAlias || ""}
-            battery={lock.electricQuantity}
-            hasGateway={lock.hasGateway}
-            firmwareRevision={lock.firmwareRevision}
-            onAction={toggleLock}
-          />
+          <Link href={`/locks/${lock.lockId}`} className="block">
+            <LockCard
+              key={lock.lockId}
+              lockId={lock.lockId}
+              lockName={lock.lockName}
+              lockAlias={lock.lockAlias || ""}
+              battery={lock.electricQuantity}
+              hasGateway={lock.hasGateway}
+              firmwareRevision={lock.firmwareRevision}
+              onAction={toggleLock}
+            />
+          </Link>
         ))}
       </div>
     </div>

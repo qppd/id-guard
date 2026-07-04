@@ -25,6 +25,9 @@ export default function Navbar() {
             <Link href="/dashboard" className="text-sm text-gray-300 hover:text-white transition-colors">
               Dashboard
             </Link>
+            <Link href="/gateways" className="text-sm text-gray-300 hover:text-white transition-colors">
+              Gateways
+            </Link>
             <Link href="/keys" className="text-sm text-gray-300 hover:text-white transition-colors">
               Keys
             </Link>
