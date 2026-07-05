@@ -194,6 +194,168 @@ export async function upgradeFirmware(accessToken: string, lockId: number) {
   }, accessToken);
 }
 
+// IC Card APIs
+export async function listICCards(accessToken: string, lockId: number) {
+  return apiPost<{ list: Record<string, unknown>[] }>("/v3/icCard/list", {
+    lockId: String(lockId),
+    pageNo: "1",
+    pageSize: "50",
+  }, accessToken);
+}
+
+export async function addICCard(
+  accessToken: string,
+  lockId: number,
+  cardNumber: string,
+  cardName: string,
+  startDate?: number,
+  endDate?: number
+) {
+  const params: Record<string, string> = {
+    lockId: String(lockId),
+    cardNumber,
+    cardName,
+    addType: "2",
+  };
+  if (startDate) params.startDate = String(startDate);
+  if (endDate) params.endDate = String(endDate);
+  return apiPost<Record<string, unknown>>("/v3/icCard/add", params, accessToken);
+}
+
+export async function deleteICCard(accessToken: string, lockId: number, cardId: number) {
+  return apiPost<Record<string, unknown>>("/v3/icCard/delete", {
+    lockId: String(lockId),
+    cardId: String(cardId),
+  }, accessToken);
+}
+
+// Fingerprint APIs
+export async function listFingerprints(accessToken: string, lockId: number) {
+  return apiPost<{ list: Record<string, unknown>[] }>("/v3/fingerprint/list", {
+    lockId: String(lockId),
+    pageNo: "1",
+    pageSize: "50",
+  }, accessToken);
+}
+
+export async function addFingerprint(
+  accessToken: string,
+  lockId: number,
+  fingerprintNumber: string,
+  fingerprintName: string,
+  startDate?: number,
+  endDate?: number
+) {
+  const params: Record<string, string> = {
+    lockId: String(lockId),
+    fingerprintNumber,
+    fingerprintName,
+    addType: "2",
+  };
+  if (startDate) params.startDate = String(startDate);
+  if (endDate) params.endDate = String(endDate);
+  return apiPost<Record<string, unknown>>("/v3/fingerprint/add", params, accessToken);
+}
+
+export async function deleteFingerprint(accessToken: string, lockId: number, fingerprintId: number) {
+  return apiPost<Record<string, unknown>>("/v3/fingerprint/delete", {
+    lockId: String(lockId),
+    fingerprintId: String(fingerprintId),
+  }, accessToken);
+}
+
+// Update passcode (edit existing)
+export async function updatePasscode(
+  accessToken: string,
+  lockId: number,
+  passcodeId: number,
+  passcode: string,
+  type: number,
+  startDate?: number,
+  endDate?: number
+) {
+  const params: Record<string, string> = {
+    lockId: String(lockId),
+    passcodeId: String(passcodeId),
+    passcode,
+    type: String(type),
+  };
+  if (startDate) params.startDate = String(startDate);
+  if (endDate) params.endDate = String(endDate);
+  return apiPost<Record<string, unknown>>("/v3/passcode/update", params, accessToken);
+}
+
+// EKey management
+export async function deleteKey(accessToken: string, keyId: number) {
+  return apiPost<Record<string, unknown>>("/v3/key/delete", {
+    keyId: String(keyId),
+  }, accessToken);
+}
+
+export async function updateKey(
+  accessToken: string,
+  keyId: number,
+  keyName: string,
+  startDate: number,
+  endDate: number,
+  remoteEnable = 1
+) {
+  return apiPost<Record<string, unknown>>("/v3/key/update", {
+    keyId: String(keyId),
+    keyName,
+    startDate: String(startDate),
+    endDate: String(endDate),
+    remoteEnable: String(remoteEnable),
+  }, accessToken);
+}
+
+export async function freezeKey(accessToken: string, keyId: number) {
+  return apiPost<Record<string, unknown>>("/v3/key/freeze", {
+    keyId: String(keyId),
+  }, accessToken);
+}
+
+export async function unfreezeKey(accessToken: string, keyId: number) {
+  return apiPost<Record<string, unknown>>("/v3/key/unfreeze", {
+    keyId: String(keyId),
+  }, accessToken);
+}
+
+// Lock configuration
+export async function getLockConfig(accessToken: string, lockId: number) {
+  return apiPost<Record<string, unknown>>("/v3/lock/config", {
+    lockId: String(lockId),
+  }, accessToken);
+}
+
+export async function setLockConfig(accessToken: string, lockId: number, config: Record<string, string>) {
+  return apiPost<Record<string, unknown>>("/v3/lock/config/set", {
+    lockId: String(lockId),
+    ...config,
+  }, accessToken);
+}
+
+// Door sensor state
+export async function getDoorSensorState(accessToken: string, lockId: number) {
+  return apiPost<Record<string, unknown>>("/v3/lock/doorSensor", {
+    lockId: String(lockId),
+  }, accessToken);
+}
+
+// Gateway config
+export async function getGatewayConfig(accessToken: string, gatewayId: number) {
+  return apiPost<Record<string, unknown>>("/v3/gateway/config", {
+    gatewayId: String(gatewayId),
+  }, accessToken);
+}
+
+export async function setGatewayConfig(accessToken: string, gatewayId: number, config: Record<string, string>) {
+  return apiPost<Record<string, unknown>>("/v3/gateway/config/set", {
+    gatewayId: String(gatewayId),
+    ...config,
+  }, accessToken);
+}
+
 export async function sendKey(
   accessToken: string,
   lockId: number,

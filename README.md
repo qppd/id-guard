@@ -1,36 +1,96 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🔐 TTLock Web App
 
-## Getting Started
+A Next.js web application for managing TTLock-compatible smart locks remotely via the TTLock Cloud API V3.
 
-First, run the development server:
+## Features
+
+- **Remote Lock/Unlock** — Lock and unlock devices from anywhere
+- **Passcodes** — Create, edit, and delete permanent/timed/cyclic passcodes
+- **IC Cards & Fingerprints** — Manage credential registrations
+- **eKeys** — Share, freeze, unfreeze, update, and delete digital keys
+- **Unlock Records** — View unlock history with type labels
+- **Gateways** — Monitor gateway online/offline status
+- **Firmware** — Check and trigger lock firmware upgrades
+- **Lock Config** — View and modify lock settings
+- **Door Sensor** — Real-time door open/closed state
+- **Webhook** — Receive TTLock event callbacks
+
+## Tech Stack
+
+| Layer | Tech |
+|---|---|
+| Framework | Next.js 16 (App Router, Turbopack) |
+| Language | TypeScript 5 |
+| UI | React 19 + Tailwind CSS 4 |
+| Data Fetching | SWR 2 |
+| API Target | TTLock Cloud API V3 (sciener.com) |
+
+## Quick Start
 
 ```bash
+# Install dependencies
+npm install
+
+# Configure environment
+cp .env.example .env.local
+# Fill in TTLOCK_CLIENT_ID and TTLOCK_CLIENT_SECRET
+
+# Run development server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) and sign in with your TTLock account credentials.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Build
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run build
+```
 
-## Learn More
+## Project Structure
 
-To learn more about Next.js, take a look at the following resources:
+```
+src/
+├── app/
+│   ├── api/              # 17 API route handlers
+│   ├── dashboard/        # Dashboard page
+│   ├── gateways/         # Gateway list page
+│   ├── keys/             # eKey management page
+│   ├── locks/[id]/       # Lock detail page
+│   ├── login/            # Login page
+│   ├── layout.tsx        # Root layout + Navbar
+│   └── page.tsx          # Landing/redirect
+├── components/
+│   ├── LockCard.tsx      # Lock card (lock/unlock)
+│   ├── LoginForm.tsx     # Login form
+│   └── Navbar.tsx        # Navigation bar
+└── lib/
+    ├── ttlock.ts         # TTLock API client (24 endpoints)
+    ├── types.ts          # TypeScript interfaces
+    └── hooks/
+        ├── useAuth.ts    # Auth hook (login/logout/check)
+        └── useLocks.ts   # Locks hook (list/toggle)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+docs/                      # Documentation
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Documentation
 
-## Deploy on Vercel
+See the [docs/](./docs) folder for:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- [System Architecture](./docs/system-architecture.md)
+- [API Reference](./docs/api.md)
+- [Technology Stack](./docs/stacks.md)
+- [Flowchart](./docs/flowchart.md)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Environment Variables
+
+| Variable | Description |
+|---|---|
+| `TTLOCK_CLIENT_ID` | TTLock API client ID |
+| `TTLOCK_CLIENT_SECRET` | TTLock API client secret |
+| `TTLOCK_WEBHOOK_SECRET` | (Optional) Webhook signature verification |
+
+## License
+
+Private project.

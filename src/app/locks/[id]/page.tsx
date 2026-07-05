@@ -68,6 +68,27 @@ export default function LockDetailPage() {
     fetcher
   );
 
+  const { data: icRes, mutate: refreshIc } = useSWR<{ ok: boolean; data: { [key: string]: unknown }[] }>(
+    isAuthenticated ? `/api/ic-cards?lockId=${lockId}` : null,
+    fetcher
+  );
+
+  const { data: fpRes, mutate: refreshFp } = useSWR<{ ok: boolean; data: { [key: string]: unknown }[] }>(
+    isAuthenticated ? `/api/fingerprints?lockId=${lockId}` : null,
+    fetcher
+  );
+
+  const { data: doorRes } = useSWR<{ ok: boolean; data: { doorState: number; timestamp: number } }>(
+    isAuthenticated ? `/api/locks/door-sensor?lockId=${lockId}` : null,
+    fetcher,
+    { refreshInterval: 30000 }
+  );
+
+  const { data: configRes, mutate: refreshConfig } = useSWR<{ ok: boolean; data: { [key: string]: unknown } }>(
+    isAuthenticated ? `/api/locks/config?lockId=${lockId}` : null,
+    fetcher
+  );
+
   const [passForm, setPassForm] = useState(false);
   const [newPass, setNewPass] = useState("");
   const [passType, setPassType] = useState(1);
@@ -75,6 +96,18 @@ export default function LockDetailPage() {
   const [err, setErr] = useState("");
   const [upgradeInfo, setUpgradeInfo] = useState("");
   const [recordsExpanded, setRecordsExpanded] = useState(false);
+  const [icExpanded, setIcExpanded] = useState(false);
+  const [fpExpanded, setFpExpanded] = useState(false);
+  const [configExpanded, setConfigExpanded] = useState(false);
+
+  // IC card form
+  const [icForm, setIcForm] = useState(false);
+  const [icNumber, setIcNumber] = useState("");
+  const [icName, setIcName] = useState("");
+  // Fingerprint form
+  const [fpForm, setFpForm] = useState(false);
+  const [fpNumber, setFpNumber] = useState("");
+  const [fpName, setFpName] = useState("");
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) router.replace("/login");
@@ -88,6 +121,8 @@ export default function LockDetailPage() {
   const gateways = gwRes?.data?.list ?? [];
   const records = recRes?.data ?? [];
   const gwById = gateways.filter((g: { [key: string]: unknown }) => g.lockId === lockId || g.lockNum);
+  const icCards = icRes?.data ?? [];
+  const fingerprints = fpRes?.data ?? [];
 
   const handleAddPass = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -140,6 +175,78 @@ export default function LockDetailPage() {
     }
   };
 
+  // IC Card handlers
+  const handleAddIc = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setMsg(""); setErr("");
+    try {
+      const res = await fetch("/api/ic-cards", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "add", lockId, cardNumber: icNumber, cardName: icName }),
+      });
+      const data = await res.json();
+      if (!data.ok) throw new Error(data.error);
+      setMsg("IC Card added!");
+      setIcNumber(""); setIcName("");
+      setIcForm(false);
+      refreshIc();
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Failed");
+    }
+  };
+
+  const handleDelIc = async (cardId: number) => {
+    try {
+      const res = await fetch("/api/ic-cards", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "delete", lockId, cardId }),
+      });
+      const data = await res.json();
+      if (!data.ok) throw new Error(data.error);
+      refreshIc();
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Failed");
+    }
+  };
+
+  // Fingerprint handlers
+  const handleAddFp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setMsg(""); setErr("");
+    try {
+      const res = await fetch("/api/fingerprints", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "add", lockId, fingerprintNumber: fpNumber, fingerprintName: fpName }),
+      });
+      const data = await res.json();
+      if (!data.ok) throw new Error(data.error);
+      setMsg("Fingerprint added!");
+      setFpNumber(""); setFpName("");
+      setFpForm(false);
+      refreshFp();
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Failed");
+    }
+  };
+
+  const handleDelFp = async (fingerprintId: number) => {
+    try {
+      const res = await fetch("/api/fingerprints", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "delete", lockId, fingerprintId }),
+      });
+      const data = await res.json();
+      if (!data.ok) throw new Error(data.error);
+      refreshFp();
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Failed");
+    }
+  };
+
   const batteryColor = detail?.electricQuantity != null
     ? detail.electricQuantity > 50 ? "text-green-400" : detail.electricQuantity > 20 ? "text-yellow-400" : "text-red-400"
     : "text-gray-400";
@@ -161,9 +268,17 @@ export default function LockDetailPage() {
             <h1 className="text-2xl font-bold text-white">{detail?.lockName || `Lock #${lockId}`}</h1>
             {detail?.lockAlias && <p className="text-gray-400 text-sm mt-1">{detail.lockAlias}</p>}
           </div>
-          <span className={`text-lg font-bold ${batteryColor}`}>
-            🔋 {detail != null ? `${detail.electricQuantity}%` : "..."}
-          </span>
+          <div className="flex items-center gap-3">
+            {/* Door Sensor */}
+            {doorRes?.data != null && (
+              <span className={`text-xs px-2 py-1 rounded-full ${doorRes.data.doorState ? "bg-green-900/30 text-green-400" : "bg-gray-800 text-gray-400"}`}>
+                🚪 {doorRes.data.doorState ? "Open" : "Closed"}
+              </span>
+            )}
+            <span className={`text-lg font-bold ${batteryColor}`}>
+              🔋 {detail != null ? `${detail.electricQuantity}%` : "..."}
+            </span>
+          </div>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-6 text-sm">
           <div><span className="text-gray-500">ID</span><p className="text-white">{detail?.lockId}</p></div>
@@ -183,12 +298,16 @@ export default function LockDetailPage() {
         </div>
       </div>
 
+      {/* Error/success banner */}
+      {err && <p className="text-red-300 text-xs bg-red-900/20 border border-red-800 rounded-lg p-3 mb-4">{err}</p>}
+      {msg && <p className="text-green-400 text-xs bg-green-900/20 border border-green-800 rounded-lg p-3 mb-4">{msg}</p>}
+
       <div className="grid gap-6 md:grid-cols-2">
         {/* Passcodes */}
         <div className="bg-gray-900 border border-gray-800 rounded-lg p-4">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-lg font-semibold text-white">Passcodes</h2>
-            <button onClick={() => setPassForm(!passForm)} className="px-3 py-1 rounded bg-blue-600 text-white text-sm hover:bg-blue-700 transition-colors">
+            <button onClick={() => { setPassForm(!passForm); setIcForm(false); setFpForm(false); }} className="px-3 py-1 rounded bg-blue-600 text-white text-sm hover:bg-blue-700 transition-colors">
               {passForm ? "Cancel" : "+ Add"}
             </button>
           </div>
@@ -202,8 +321,6 @@ export default function LockDetailPage() {
                 <option value={3}>Cyclic</option>
               </select>
               <button type="submit" className="w-full py-1.5 rounded bg-green-700 text-green-100 text-sm hover:bg-green-600">Add Passcode</button>
-              {msg && <p className="text-green-400 text-xs">{msg}</p>}
-              {err && <p className="text-red-300 text-xs">{err}</p>}
             </form>
           )}
 
@@ -220,6 +337,74 @@ export default function LockDetailPage() {
                     </span>
                   </div>
                   <button onClick={() => handleDelPass(p.passcodeId)} className="text-red-400 hover:text-red-300 text-xs">Delete</button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* IC Cards */}
+        <div className="bg-gray-900 border border-gray-800 rounded-lg p-4">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-lg font-semibold text-white">IC Cards</h2>
+            <button onClick={() => { setIcForm(!icForm); setPassForm(false); setFpForm(false); }} className="px-3 py-1 rounded bg-blue-600 text-white text-sm hover:bg-blue-700 transition-colors">
+              {icForm ? "Cancel" : "+ Add"}
+            </button>
+          </div>
+
+          {icForm && (
+            <form onSubmit={handleAddIc} className="mb-4 p-3 bg-gray-800 rounded space-y-2">
+              <input type="text" placeholder="Card Number" value={icNumber} onChange={(e) => setIcNumber(e.target.value)} required className="w-full px-3 py-2 rounded bg-gray-700 border border-gray-600 text-white text-sm" />
+              <input type="text" placeholder="Card Name" value={icName} onChange={(e) => setIcName(e.target.value)} required className="w-full px-3 py-2 rounded bg-gray-700 border border-gray-600 text-white text-sm" />
+              <button type="submit" className="w-full py-1.5 rounded bg-green-700 text-green-100 text-sm hover:bg-green-600">Add IC Card</button>
+            </form>
+          )}
+
+          {icCards.length === 0 ? (
+            <p className="text-gray-500 text-sm text-center py-4">No IC cards</p>
+          ) : (
+            <div className="space-y-2 max-h-64 overflow-y-auto">
+              {icCards.map((c: { [key: string]: unknown }, i: number) => (
+                <div key={i} className="flex items-center justify-between bg-gray-800 rounded px-3 py-2">
+                  <div>
+                    <p className="text-white font-mono text-sm">{c.cardNumber as string}</p>
+                    <p className="text-gray-500 text-xs">{c.cardName as string}</p>
+                  </div>
+                  <button onClick={() => handleDelIc(c.cardId as number)} className="text-red-400 hover:text-red-300 text-xs">Delete</button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Fingerprints */}
+        <div className="bg-gray-900 border border-gray-800 rounded-lg p-4">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-lg font-semibold text-white">Fingerprints</h2>
+            <button onClick={() => { setFpForm(!fpForm); setPassForm(false); setIcForm(false); }} className="px-3 py-1 rounded bg-blue-600 text-white text-sm hover:bg-blue-700 transition-colors">
+              {fpForm ? "Cancel" : "+ Add"}
+            </button>
+          </div>
+
+          {fpForm && (
+            <form onSubmit={handleAddFp} className="mb-4 p-3 bg-gray-800 rounded space-y-2">
+              <input type="text" placeholder="Fingerprint Number" value={fpNumber} onChange={(e) => setFpNumber(e.target.value)} required className="w-full px-3 py-2 rounded bg-gray-700 border border-gray-600 text-white text-sm" />
+              <input type="text" placeholder="Fingerprint Name" value={fpName} onChange={(e) => setFpName(e.target.value)} required className="w-full px-3 py-2 rounded bg-gray-700 border border-gray-600 text-white text-sm" />
+              <button type="submit" className="w-full py-1.5 rounded bg-green-700 text-green-100 text-sm hover:bg-green-600">Add Fingerprint</button>
+            </form>
+          )}
+
+          {fingerprints.length === 0 ? (
+            <p className="text-gray-500 text-sm text-center py-4">No fingerprints</p>
+          ) : (
+            <div className="space-y-2 max-h-64 overflow-y-auto">
+              {fingerprints.map((fp: { [key: string]: unknown }, i: number) => (
+                <div key={i} className="flex items-center justify-between bg-gray-800 rounded px-3 py-2">
+                  <div>
+                    <p className="text-white text-sm">{fp.fingerprintName as string || `FP #${fp.fingerprintId}`}</p>
+                    <p className="text-gray-500 text-xs">#{fp.fingerprintNumber as string}</p>
+                  </div>
+                  <button onClick={() => handleDelFp(fp.fingerprintId as number)} className="text-red-400 hover:text-red-300 text-xs">Delete</button>
                 </div>
               ))}
             </div>
@@ -273,6 +458,24 @@ export default function LockDetailPage() {
                 </div>
               ))
             )}
+          </div>
+        )}
+      </div>
+
+      {/* Lock Config */}
+      <div className="bg-gray-900 border border-gray-800 rounded-lg p-4 mt-6">
+        <button onClick={() => setConfigExpanded(!configExpanded)} className="flex items-center justify-between w-full">
+          <h2 className="text-lg font-semibold text-white">Lock Config</h2>
+          <span className="text-gray-500">{configExpanded ? "▲" : "▼"}</span>
+        </button>
+        {configExpanded && configRes?.data && (
+          <div className="mt-3 space-y-1">
+            {Object.entries(configRes.data).filter(([k]) => k !== "errcode").map(([key, val]) => (
+              <div key={key} className="flex items-center justify-between bg-gray-800 rounded px-3 py-1.5 text-sm">
+                <span className="text-gray-400">{key}</span>
+                <span className="text-white">{String(val)}</span>
+              </div>
+            ))}
           </div>
         )}
       </div>

@@ -61,6 +61,52 @@ export interface LockRecord {
   success: number;
 }
 
+export interface ICCardInfo {
+  cardId: number;
+  cardNumber: string;
+  cardName: string;
+  startDate: number;
+  endDate: number;
+  status: number;
+  lockId: number;
+  createDate: number;
+}
+
+export interface FingerprintInfo {
+  fingerprintId: number;
+  fingerprintNumber: string;
+  fingerprintName: string;
+  startDate: number;
+  endDate: number;
+  status: number;
+  lockId: number;
+  createDate: number;
+}
+
+export interface DoorSensorState {
+  lockId: number;
+  doorState: number; // 0=closed, 1=opened
+  timestamp: number;
+}
+
+export interface LockConfig {
+  lockId: number;
+  audioEnable?: number;
+  passcodeVisible?: number;
+  tamperAlert?: number;
+  lockSound?: number;
+  [key: string]: unknown;
+}
+
+export interface GatewayConfig {
+  gatewayId: number;
+  gatewayName: string;
+  timezoneRawOffset: number;
+  isOnline: number;
+  firmwareVersion?: string;
+  [key: string]: unknown;
+}
+
 export interface TokenResponse {
   access_token: string;
   refresh_token: string;

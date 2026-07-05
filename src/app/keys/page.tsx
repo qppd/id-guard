@@ -51,6 +51,7 @@ export default function KeysPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          action: "send",
           lockId: parseInt(lockId),
           receiverUsername: receiver,
           keyName,
@@ -67,6 +68,21 @@ export default function KeysPage() {
       setSendError(err instanceof Error ? err.message : "Failed");
     } finally {
       setSending(false);
+    }
+  };
+
+  const handleKeyAction = async (keyId: number, action: "delete" | "freeze" | "unfreeze") => {
+    try {
+      const res = await fetch("/api/keys", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action, keyId }),
+      });
+      const result = await res.json();
+      if (!result.ok) throw new Error(result.error);
+      mutate();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Action failed");
     }
   };
 
@@ -171,13 +187,32 @@ export default function KeysPage() {
                 {key.remoteEnable ? " · Remote: ✅" : ""}
               </p>
             </div>
-            {/* validity period if available */}
-            {(key.startDate || key.endDate) && (
-              <div className="text-xs text-gray-500 text-right">
-                {key.startDate && <p>From: {new Date(key.startDate as number).toLocaleDateString()}</p>}
-                {key.endDate && <p>Until: {new Date(key.endDate as number).toLocaleDateString()}</p>}
-              </div>
-            )}
+            <div className="flex items-center gap-2">
+              {(key.startDate || key.endDate) && (
+                <div className="text-xs text-gray-500 text-right mr-3 hidden sm:block">
+                  {key.startDate && <p>From: {new Date(key.startDate as number).toLocaleDateString()}</p>}
+                  {key.endDate && <p>Until: {new Date(key.endDate as number).toLocaleDateString()}</p>}
+                </div>
+              )}
+              <button
+                onClick={() => handleKeyAction(key.keyId, "freeze")}
+                className="px-2 py-1 rounded bg-yellow-700/50 text-yellow-300 text-xs hover:bg-yellow-700 transition-colors"
+              >
+                Freeze
+              </button>
+              <button
+                onClick={() => handleKeyAction(key.keyId, "unfreeze")}
+                className="px-2 py-1 rounded bg-green-700/50 text-green-300 text-xs hover:bg-green-700 transition-colors"
+              >
+                Unfreeze
+              </button>
+              <button
+                onClick={() => handleKeyAction(key.keyId, "delete")}
+                className="px-2 py-1 rounded bg-red-700/50 text-red-300 text-xs hover:bg-red-700 transition-colors"
+              >
+                Delete
+              </button>
+            </div>
           </div>
         ))}
       </div>

@@ -14,8 +14,8 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ ok: false, error: "lockId required" }, { status: 400 });
     }
 
-    const { listPasscodes } = await import("@/lib/ttlock");
-    const data = await listPasscodes(token, lockId);
+    const { listICCards } = await import("@/lib/ttlock");
+    const data = await listICCards(token, lockId);
     return NextResponse.json({ ok: true, data: data.list });
   } catch (err) {
     return NextResponse.json(
@@ -33,22 +33,16 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const { action, lockId, passcode, type, startDate, endDate, passcodeId } = await req.json();
-
-    const { addPasscode, deletePasscode, updatePasscode } = await import("@/lib/ttlock");
+    const { action, lockId, cardId, cardNumber, cardName, startDate, endDate } = await req.json();
+    const { addICCard, deleteICCard } = await import("@/lib/ttlock");
 
     if (action === "add") {
-      const data = await addPasscode(token, lockId, passcode, type, startDate, endDate);
+      const data = await addICCard(token, lockId, cardNumber, cardName, startDate, endDate);
       return NextResponse.json({ ok: true, data });
     }
 
     if (action === "delete") {
-      const data = await deletePasscode(token, lockId, passcodeId);
-      return NextResponse.json({ ok: true, data });
-    }
-
-    if (action === "update") {
-      const data = await updatePasscode(token, lockId, passcodeId, passcode, type, startDate, endDate);
+      const data = await deleteICCard(token, lockId, cardId);
       return NextResponse.json({ ok: true, data });
     }
 

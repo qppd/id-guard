@@ -30,24 +30,48 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const { lockId, receiverUsername, keyName, startDate, endDate } = await req.json();
-    if (!lockId || !receiverUsername) {
-      return NextResponse.json({ ok: false, error: "Missing required fields" }, { status: 400 });
-    }
+    const body = await req.json();
+    const { action, keyId, lockId, receiverUsername, keyName, startDate, endDate, remoteEnable } = body;
 
-    const { sendKey } = await import("@/lib/ttlock");
-    const result = await sendKey(
-      token,
-      lockId,
-      receiverUsername,
-      keyName || "Shared Key",
-      startDate || Date.now(),
-      endDate || Date.now() + 365 * 24 * 60 * 60 * 1000
-    );
-    return NextResponse.json({ ok: true, data: result });
+    const { sendKey, deleteKey, updateKey, freezeKey, unfreezeKey } = await import("@/lib/ttlock");
+
+    switch (action) {
+      case "send":
+        if (!lockId || !receiverUsername) {
+          return NextResponse.json({ ok: false, error: "Missing required fields" }, { status: 400 });
+        }
+        const sent = await sendKey(
+          token,
+          lockId,
+          receiverUsername,
+          keyName || "Shared Key",
+          startDate || Date.now(),
+          endDate || Date.now() + 365 * 24 * 60 * 60 * 1000
+        );
+        return NextResponse.json({ ok: true, data: sent });
+
+      case "delete":
+        const deleted = await deleteKey(token, keyId);
+        return NextResponse.json({ ok: true, data: deleted });
+
+      case "update":
+        const updated = await updateKey(token, keyId, keyName, startDate, endDate, remoteEnable);
+        return NextResponse.json({ ok: true, data: updated });
+
+      case "freeze":
+        const frozen = await freezeKey(token, keyId);
+        return NextResponse.json({ ok: true, data: frozen });
+
+      case "unfreeze":
+        const unfrozen = await unfreezeKey(token, keyId);
+        return NextResponse.json({ ok: true, data: unfrozen });
+
+      default:
+        return NextResponse.json({ ok: false, error: "Unknown action" }, { status: 400 });
+    }
   } catch (err) {
     return NextResponse.json(
-      { ok: false, error: err instanceof Error ? err.message : "Failed to send key" },
+      { ok: false, error: err instanceof Error ? err.message : "Failed" },
       { status: 502 }
     );
   }

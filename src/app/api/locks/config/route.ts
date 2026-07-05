@@ -14,9 +14,9 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ ok: false, error: "lockId required" }, { status: 400 });
     }
 
-    const { listPasscodes } = await import("@/lib/ttlock");
-    const data = await listPasscodes(token, lockId);
-    return NextResponse.json({ ok: true, data: data.list });
+    const { getLockConfig } = await import("@/lib/ttlock");
+    const data = await getLockConfig(token, lockId);
+    return NextResponse.json({ ok: true, data });
   } catch (err) {
     return NextResponse.json(
       { ok: false, error: err instanceof Error ? err.message : "Failed" },
@@ -33,26 +33,10 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const { action, lockId, passcode, type, startDate, endDate, passcodeId } = await req.json();
-
-    const { addPasscode, deletePasscode, updatePasscode } = await import("@/lib/ttlock");
-
-    if (action === "add") {
-      const data = await addPasscode(token, lockId, passcode, type, startDate, endDate);
-      return NextResponse.json({ ok: true, data });
-    }
-
-    if (action === "delete") {
-      const data = await deletePasscode(token, lockId, passcodeId);
-      return NextResponse.json({ ok: true, data });
-    }
-
-    if (action === "update") {
-      const data = await updatePasscode(token, lockId, passcodeId, passcode, type, startDate, endDate);
-      return NextResponse.json({ ok: true, data });
-    }
-
-    return NextResponse.json({ ok: false, error: "Unknown action" }, { status: 400 });
+    const { lockId, ...config } = await req.json();
+    const { setLockConfig } = await import("@/lib/ttlock");
+    const data = await setLockConfig(token, lockId, config);
+    return NextResponse.json({ ok: true, data });
   } catch (err) {
     return NextResponse.json(
       { ok: false, error: err instanceof Error ? err.message : "Failed" },
