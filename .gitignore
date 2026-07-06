@@ -35,6 +35,8 @@ yarn-error.log*
 
 # hermes agent
 .hermes/
+AGENTS.md
+CLAUDE.md
 
 # vercel
 .vercel
