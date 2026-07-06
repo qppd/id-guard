@@ -29,16 +29,16 @@ export default function LoginForm() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-black px-4">
+    <div className="min-h-screen flex items-center justify-center bg-background px-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-white mb-2">🔐 TTLock</h1>
-          <p className="text-gray-400 text-sm">Sign in to manage your locks</p>
+          <h1 className="text-2xl font-bold text-foreground mb-2">🔐 TTLock</h1>
+          <p className="text-text-secondary text-sm">Sign in to manage your locks</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="username" className="block text-sm text-gray-300 mb-1">
+            <label htmlFor="username" className="block text-sm text-text-secondary mb-1">
               TTLock Username / Email
             </label>
             <input
@@ -46,14 +46,14 @@ export default function LoginForm() {
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              className="w-full px-3 py-2 rounded bg-gray-900 border border-gray-700 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-blue-500"
+              className="w-full px-3 py-2 rounded bg-input-bg border border-input-border text-foreground text-sm placeholder-text-muted focus:outline-none focus:border-accent"
               placeholder="your@email.com"
               required
             />
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm text-gray-300 mb-1">
+            <label htmlFor="password" className="block text-sm text-text-secondary mb-1">
               Password
             </label>
             <input
@@ -61,7 +61,7 @@ export default function LoginForm() {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-3 py-2 rounded bg-gray-900 border border-gray-700 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-blue-500"
+              className="w-full px-3 py-2 rounded bg-input-bg border border-input-border text-foreground text-sm placeholder-text-muted focus:outline-none focus:border-accent"
               placeholder="••••••••"
               required
             />
@@ -76,7 +76,7 @@ export default function LoginForm() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-2 rounded bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="w-full py-2 rounded bg-accent text-white text-sm font-medium hover:bg-accent-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             {loading ? "Signing in..." : "Sign In"}
           </button>

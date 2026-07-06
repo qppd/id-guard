@@ -3,6 +3,7 @@
 import LockCard from "@/components/LockCard";
 import { useLocks } from "@/lib/hooks/useLocks";
 import { useAuth } from "@/lib/hooks/useAuth";
+import { useTheme } from "@/contexts/ThemeContext";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import useSWR from "swr";
@@ -13,11 +14,13 @@ const fetcher = (url: string) => fetch(url).then((r) => r.json());
 export default function DashboardPage() {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   const { locks, isLoading, error, toggleLock } = useLocks();
+  const { settings } = useTheme();
   const router = useRouter();
 
   const { data: gwData } = useSWR<{ ok: boolean; data: { list: Record<string, unknown>[] } }>(
     isAuthenticated ? "/api/gateways" : null,
-    fetcher
+    fetcher,
+    { refreshInterval: settings.refreshInterval > 0 ? settings.refreshInterval * 1000 : undefined }
   );
 
   const gateways = gwData?.data?.list ?? [];
@@ -31,7 +34,7 @@ export default function DashboardPage() {
   if (authLoading) {
     return (
       <div className="min-h-[80vh] flex items-center justify-center">
-        <p className="text-gray-400">Loading...</p>
+        <p className="text-text-muted">Loading...</p>
       </div>
     );
   }
@@ -43,25 +46,27 @@ export default function DashboardPage() {
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
       {/* Summary cards */}
-      <div className="grid grid-cols-3 gap-4 mb-6">
-        <div className="bg-gray-900 border border-gray-800 rounded-lg p-4 text-center">
-          <p className="text-2xl font-bold text-white">{locks.length}</p>
-          <p className="text-xs text-gray-400 mt-1">Locks</p>
+      {settings.showSummary && (
+        <div className="grid grid-cols-3 gap-4 mb-6">
+          <div className="bg-card border border-border-card rounded-lg p-4 text-center">
+            <p className="text-2xl font-bold text-foreground">{locks.length}</p>
+            <p className="text-xs text-text-muted mt-1">Locks</p>
+          </div>
+          <div className="bg-card border border-border-card rounded-lg p-4 text-center">
+            <p className="text-2xl font-bold text-foreground">{gateways.length}</p>
+            <p className="text-xs text-text-muted mt-1">Gateways</p>
+          </div>
+          <div className="bg-card border border-border-card rounded-lg p-4 text-center">
+            <p className="text-2xl font-bold text-foreground">{onlineGateways.length}</p>
+            <p className="text-xs text-text-muted mt-1">Online</p>
+          </div>
         </div>
-        <div className="bg-gray-900 border border-gray-800 rounded-lg p-4 text-center">
-          <p className="text-2xl font-bold text-white">{gateways.length}</p>
-          <p className="text-xs text-gray-400 mt-1">Gateways</p>
-        </div>
-        <div className="bg-gray-900 border border-gray-800 rounded-lg p-4 text-center">
-          <p className="text-2xl font-bold text-white">{onlineGateways.length}</p>
-          <p className="text-xs text-gray-400 mt-1">Online</p>
-        </div>
-      </div>
+      )}
 
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-white">Dashboard</h1>
-          <p className="text-sm text-gray-400 mt-1">
+          <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
+          <p className="text-sm text-text-secondary mt-1">
             {locks.length} lock{locks.length !== 1 ? "s" : ""} on your account
           </p>
         </div>
@@ -69,7 +74,7 @@ export default function DashboardPage() {
 
       {isLoading && (
         <div className="text-center py-12">
-          <p className="text-gray-400">Loading locks...</p>
+          <p className="text-text-muted">Loading locks...</p>
         </div>
       )}
 
@@ -81,18 +86,17 @@ export default function DashboardPage() {
 
       {!isLoading && !error && locks.length === 0 && (
         <div className="text-center py-12">
-          <p className="text-gray-400 text-lg mb-2">No locks found</p>
-          <p className="text-gray-600 text-sm">
+          <p className="text-text-muted text-lg mb-2">No locks found</p>
+          <p className="text-text-muted text-sm">
             Add a lock through the TTLock mobile app first, then refresh.
           </p>
         </div>
       )}
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className={`gap-4 ${settings.lockView === "list" ? "flex flex-col" : "grid sm:grid-cols-2 lg:grid-cols-3"}`}>
         {locks.map((lock) => (
-          <Link href={`/locks/${lock.lockId}`} className="block">
+          <Link href={`/locks/${lock.lockId}`} className="block" key={lock.lockId}>
             <LockCard
-              key={lock.lockId}
               lockId={lock.lockId}
               lockName={lock.lockName}
               lockAlias={lock.lockAlias || ""}

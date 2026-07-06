@@ -14,26 +14,33 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="bg-gray-900 border-b border-gray-800">
+    <nav className="bg-card border-b border-border-card">
       <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-        <Link href="/" className="text-lg font-semibold text-white flex items-center gap-2">
-          <span className="text-blue-400">🔐</span>
+        <Link href="/" className="text-lg font-semibold text-foreground flex items-center gap-2">
+          <span className="text-accent">🔐</span>
           TTLock
         </Link>
         {isAuthenticated && (
           <div className="flex items-center gap-4">
-            <Link href="/dashboard" className="text-sm text-gray-300 hover:text-white transition-colors">
+            <Link href="/dashboard" className="text-sm text-text-secondary hover:text-foreground transition-colors">
               Dashboard
             </Link>
-            <Link href="/gateways" className="text-sm text-gray-300 hover:text-white transition-colors">
+            <Link href="/gateways" className="text-sm text-text-secondary hover:text-foreground transition-colors">
               Gateways
             </Link>
-            <Link href="/keys" className="text-sm text-gray-300 hover:text-white transition-colors">
+            <Link href="/keys" className="text-sm text-text-secondary hover:text-foreground transition-colors">
               Keys
+            </Link>
+            <Link
+              href="/settings"
+              className="text-sm text-text-secondary hover:text-foreground transition-colors"
+              title="Settings"
+            >
+              ⚙️
             </Link>
             <button
               onClick={handleLogout}
-              className="text-sm px-3 py-1.5 rounded bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white transition-colors"
+              className="text-sm px-3 py-1.5 rounded bg-input-bg border border-input-border text-text-secondary hover:bg-accent-bg hover:text-accent transition-colors"
             >
               Logout
             </button>

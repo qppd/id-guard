@@ -2,6 +2,7 @@
 
 import useSWR from "swr";
 import { useAuth } from "@/lib/hooks/useAuth";
+import { useTheme } from "@/contexts/ThemeContext";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -9,6 +10,7 @@ const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
 export default function KeysPage() {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const { settings } = useTheme();
   const router = useRouter();
 
   interface KeyData {
@@ -24,7 +26,8 @@ export default function KeysPage() {
 
   const { data, error, mutate, isLoading } = useSWR<{ ok: boolean; data: KeyData[] }>(
     isAuthenticated ? "/api/keys" : null,
-    fetcher
+    fetcher,
+    { refreshInterval: settings.refreshInterval > 0 ? settings.refreshInterval * 1000 : undefined }
   );
 
   // Send key form
@@ -89,7 +92,7 @@ export default function KeysPage() {
   if (authLoading) {
     return (
       <div className="min-h-[80vh] flex items-center justify-center">
-        <p className="text-gray-400">Loading...</p>
+        <p className="text-text-muted">Loading...</p>
       </div>
     );
   }
@@ -102,29 +105,29 @@ export default function KeysPage() {
     <div className="max-w-4xl mx-auto px-4 py-8">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-white">eKeys</h1>
-          <p className="text-sm text-gray-400 mt-1">
+          <h1 className="text-2xl font-bold text-foreground">eKeys</h1>
+          <p className="text-sm text-text-secondary mt-1">
             {keys.length} digital key{keys.length !== 1 ? "s" : ""}
           </p>
         </div>
         <button
           onClick={() => setShowForm(!showForm)}
-          className="px-3 py-1.5 rounded bg-blue-600 text-white text-sm hover:bg-blue-700 transition-colors"
+          className="px-3 py-1.5 rounded bg-accent text-white text-sm hover:bg-accent-hover transition-colors"
         >
           {showForm ? "Cancel" : "Share Key"}
         </button>
       </div>
 
       {showForm && (
-        <form onSubmit={handleSendKey} className="bg-gray-900 border border-gray-800 rounded-lg p-4 mb-6 space-y-3">
-          <h3 className="text-white font-medium text-sm">Share eKey</h3>
+        <form onSubmit={handleSendKey} className="bg-card border border-border-card rounded-lg p-4 mb-6 space-y-3">
+          <h3 className="text-foreground font-medium text-sm">Share eKey</h3>
           <div className="grid gap-3 sm:grid-cols-3">
             <input
               type="number"
               placeholder="Lock ID"
               value={lockId}
               onChange={(e) => setLockId(e.target.value)}
-              className="px-3 py-2 rounded bg-gray-800 border border-gray-700 text-white text-sm"
+              className="px-3 py-2 rounded bg-input-bg border border-input-border text-foreground text-sm placeholder-text-muted"
               required
             />
             <input
@@ -132,7 +135,7 @@ export default function KeysPage() {
               placeholder="Recipient username/email"
               value={receiver}
               onChange={(e) => setReceiver(e.target.value)}
-              className="px-3 py-2 rounded bg-gray-800 border border-gray-700 text-white text-sm"
+              className="px-3 py-2 rounded bg-input-bg border border-input-border text-foreground text-sm placeholder-text-muted"
               required
             />
             <input
@@ -140,14 +143,14 @@ export default function KeysPage() {
               placeholder="Key name"
               value={keyName}
               onChange={(e) => setKeyName(e.target.value)}
-              className="px-3 py-2 rounded bg-gray-800 border border-gray-700 text-white text-sm"
+              className="px-3 py-2 rounded bg-input-bg border border-input-border text-foreground text-sm placeholder-text-muted"
             />
           </div>
           {sendError && <p className="text-red-300 text-xs">{sendError}</p>}
           <button
             type="submit"
             disabled={sending}
-            className="px-4 py-1.5 rounded bg-green-700 text-green-100 text-sm hover:bg-green-600 disabled:opacity-50"
+            className="px-4 py-1.5 rounded bg-accent text-white text-sm hover:bg-accent-hover disabled:opacity-50 transition-colors"
           >
             {sending ? "Sending..." : "Send Key"}
           </button>
@@ -156,7 +159,7 @@ export default function KeysPage() {
 
       {isLoading && (
         <div className="text-center py-12">
-          <p className="text-gray-400">Loading keys...</p>
+          <p className="text-text-muted">Loading keys...</p>
         </div>
       )}
 
@@ -168,7 +171,7 @@ export default function KeysPage() {
 
       {!isLoading && keys.length === 0 && (
         <div className="text-center py-12">
-          <p className="text-gray-400">No keys found</p>
+          <p className="text-text-muted">No keys found</p>
         </div>
       )}
 
@@ -176,20 +179,20 @@ export default function KeysPage() {
         {keys.map((key) => (
           <div
             key={key.keyId}
-            className="bg-gray-900 border border-gray-800 rounded-lg p-4 flex items-center justify-between"
+            className="bg-card border border-border-card rounded-lg p-4 flex items-center justify-between"
           >
             <div>
-              <p className="text-white text-sm font-medium">
+              <p className="text-foreground text-sm font-medium">
                 {key.lockName as string || `Lock #${key.lockId}`}
               </p>
-              <p className="text-gray-500 text-xs mt-0.5">
+              <p className="text-text-muted text-xs mt-0.5">
                 Key ID: {key.keyId} · Type: {key.userType === 110301 ? "Admin" : "User"}
                 {key.remoteEnable ? " · Remote: ✅" : ""}
               </p>
             </div>
             <div className="flex items-center gap-2">
               {(key.startDate || key.endDate) && (
-                <div className="text-xs text-gray-500 text-right mr-3 hidden sm:block">
+                <div className="text-xs text-text-muted text-right mr-3 hidden sm:block">
                   {key.startDate && <p>From: {new Date(key.startDate as number).toLocaleDateString()}</p>}
                   {key.endDate && <p>Until: {new Date(key.endDate as number).toLocaleDateString()}</p>}
                 </div>
@@ -208,7 +211,7 @@ export default function KeysPage() {
               </button>
               <button
                 onClick={() => handleKeyAction(key.keyId, "delete")}
-                className="px-2 py-1 rounded bg-red-700/50 text-red-300 text-xs hover:bg-red-700 transition-colors"
+                className="px-2 py-1 rounded bg-accent text-white text-xs hover:bg-accent-hover transition-colors"
               >
                 Delete
               </button>

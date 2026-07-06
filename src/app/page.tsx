@@ -16,8 +16,8 @@ export default function Home() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-black">
-        <p className="text-gray-400">Loading...</p>
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <p className="text-text-muted">Loading...</p>
       </div>
     );
   }
@@ -25,15 +25,15 @@ export default function Home() {
   if (isAuthenticated) return null; // redirecting
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-black px-4 text-center">
-      <h1 className="text-4xl font-bold text-white mb-4">🔐 TTLock</h1>
-      <p className="text-gray-400 mb-8 max-w-md">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-background px-4 text-center">
+      <h1 className="text-4xl font-bold text-foreground mb-4">🔐 TTLock</h1>
+      <p className="text-text-secondary mb-8 max-w-md">
         Manage your TTLock-compatible smart locks — lock/unlock remotely, share eKeys,
         and monitor your devices from anywhere.
       </p>
       <a
         href="/login"
-        className="px-6 py-3 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 transition-colors"
+        className="px-6 py-3 rounded-lg bg-accent text-white font-medium hover:bg-accent-hover transition-colors"
       >
         Sign In
       </a>
