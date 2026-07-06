@@ -2,7 +2,7 @@
 
 ## Overview
 
-The TTLock Web App is a **Next.js 16** server-side-rendered application that acts as a bridge between a browser-based UI and the **TTLock Cloud API V3**. Authentication is cookie-based, and all TTLock API calls are proxied through Next.js API route handlers to keep credentials server-side.
+The IDGuard app is a **Next.js 16** server-side-rendered application that acts as a bridge between a browser-based UI and the **TTLock Cloud API V3**. Authentication is cookie-based, and all TTLock API calls are proxied through Next.js API route handlers to keep credentials server-side.
 
 ---
 

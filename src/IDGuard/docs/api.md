@@ -2,7 +2,7 @@
 
 ## Overview
 
-The TTLock Web App exposes **17 internal API routes** that proxy requests to the [TTLock Cloud API V3](https://open.ttlock.com/documentation) (`api.sciener.com`). All routes require authentication via the `tt_token` httpOnly cookie.
+The IDGuard app exposes **17 internal API routes** that proxy requests to the [TTLock Cloud API V3](https://open.ttlock.com/documentation) (`api.sciener.com`). All routes require authentication via the `tt_token` httpOnly cookie.
 
 **Base URL:** `http://localhost:3000` (development)
 

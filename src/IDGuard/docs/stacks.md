@@ -82,7 +82,7 @@ SWR provides:
 ## Project Dependencies
 
 ```
-📦 ttlock-webapp@0.1.0
+|📦 id-guard@0.1.0
 ├── dependencies:
 │   ├── next@16.2.9
 │   ├── react@19.2.4
