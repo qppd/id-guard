@@ -1,108 +1,55 @@
 @import "tailwindcss";
 
 /* ============================================================
-   TTLock Theme System — driven by data attributes on <html>
+   TTLock Theme System — Runtime CSS Custom Properties
+   All utility classes use var() resolved at runtime.
    ============================================================ */
 
-/* ---- Base (always present) ---- */
-:root {
-  --accent-hue: 217;
-  --accent-sat: 91%;
-  --accent-light: 60%;
-  --accent: hsl(var(--accent-hue), var(--accent-sat), var(--accent-light));
-  --accent-hover: hsl(var(--accent-hue), var(--accent-sat), calc(var(--accent-light) - 8%));
-  --accent-bg: hsl(var(--accent-hue), var(--accent-sat), var(--accent-light) / 0.15);
-  --accent-text: hsl(var(--accent-hue), var(--accent-sat), calc(var(--accent-light) + 10%));
-}
-
 /* ---- Dark theme (default) ---- */
-:root,
-:root.dark {
-  --background: #0a0a0a;
-  --foreground: #ededed;
+:root {
+  --bg: #0a0a0a;
+  --fg: #ededed;
   --card-bg: #111111;
   --card-border: #1f1f1f;
-  --card-border-subtle: #1f1f1f / 0.4;
+  --card-border-subtle: rgba(31, 31, 31, 0.4);
   --text-secondary: #9ca3af;
   --text-muted: #6b7280;
   --input-bg: #1a1a1a;
   --input-border: #333;
+
+  --accent-hue: 217;
+  --accent-sat: 91%;
+  --accent-lgt: 60%;
 }
 
 /* ---- Light theme ---- */
-:root.light {
-  --background: #f5f5f5;
-  --foreground: #171717;
+.light {
+  --bg: #f5f5f5;
+  --fg: #171717;
   --card-bg: #ffffff;
   --card-border: #e5e7eb;
-  --card-border-subtle: #e5e7eb / 0.5;
+  --card-border-subtle: rgba(229, 231, 235, 0.5);
   --text-secondary: #4b5563;
   --text-muted: #9ca3af;
   --input-bg: #ffffff;
   --input-border: #d1d5db;
 }
 
-/* ---- Theme variables for Tailwind v4 ---- */
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-card: var(--card-bg);
-  --color-border-card: var(--card-border);
-  --color-accent: var(--accent);
-  --color-accent-hover: var(--accent-hover);
-  --color-accent-bg: var(--accent-bg);
-  --color-accent-text: var(--accent-text);
-  --color-text-secondary: var(--text-secondary);
-  --color-text-muted: var(--text-muted);
-  --color-input-bg: var(--input-bg);
-  --color-input-border: var(--input-border);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+/* ---- Derived accent vars (dynamic, based on hue/sat/lgt) ---- */
+:root {
+  --accent: hsl(var(--accent-hue), var(--accent-sat), var(--accent-lgt));
+  --accent-hover: hsl(var(--accent-hue), var(--accent-sat), calc(var(--accent-lgt) - 8%));
+  --accent-bg: hsl(var(--accent-hue), var(--accent-sat), var(--accent-lgt) / 0.15);
+  --accent-text: hsl(var(--accent-hue), var(--accent-sat), calc(var(--accent-lgt) + 10%));
 }
 
-/* ---- Accent color palettes ---- */
-
-/* Blue (default) */
-[data-accent="blue"] {
-  --accent-hue: 217;
-  --accent-sat: 91%;
-  --accent-light: 60%;
-}
-
-/* Green */
-[data-accent="green"] {
-  --accent-hue: 142;
-  --accent-sat: 71%;
-  --accent-light: 45%;
-}
-
-/* Purple */
-[data-accent="purple"] {
-  --accent-hue: 271;
-  --accent-sat: 81%;
-  --accent-light: 56%;
-}
-
-/* Orange */
-[data-accent="orange"] {
-  --accent-hue: 24;
-  --accent-sat: 95%;
-  --accent-light: 53%;
-}
-
-/* Teal */
-[data-accent="teal"] {
-  --accent-hue: 173;
-  --accent-sat: 80%;
-  --accent-light: 40%;
-}
-
-/* Pink */
-[data-accent="pink"] {
-  --accent-hue: 330;
-  --accent-sat: 81%;
-  --accent-light: 60%;
-}
+/* ---- Accent palettes ---- */
+[data-accent="blue"]   { --accent-hue: 217; --accent-sat: 91%;  --accent-lgt: 60%; }
+[data-accent="green"]  { --accent-hue: 142; --accent-sat: 71%;  --accent-lgt: 45%; }
+[data-accent="purple"] { --accent-hue: 271; --accent-sat: 81%;  --accent-lgt: 56%; }
+[data-accent="orange"] { --accent-hue: 24;  --accent-sat: 95%;  --accent-lgt: 53%; }
+[data-accent="teal"]   { --accent-hue: 173; --accent-sat: 80%;  --accent-lgt: 40%; }
+[data-accent="pink"]   { --accent-hue: 330; --accent-sat: 81%;  --accent-lgt: 60%; }
 
 /* ---- Card style ---- */
 [data-card-style="glass"] {
@@ -111,24 +58,62 @@
 }
 
 /* ---- Border style ---- */
-[data-border-style="subtle"] {
-  --card-border: var(--card-border-subtle);
-}
-[data-border-style="none"] {
-  --card-border: transparent;
-}
+[data-border-style="subtle"] { --card-border: var(--card-border-subtle); }
+[data-border-style="none"]   { --card-border: transparent; }
 
 /* ---- Card density ---- */
 [data-card-density="compact"] .card-compact {
-  @apply p-2 gap-1 text-xs;
+  padding: 0.5rem !important;
+  gap: 0.25rem !important;
+  font-size: 0.75rem !important;
 }
+
+/* ============================================================
+   RUNTIME UTILITY CLASSES — resolve var() at runtime,
+   NOT via @theme inline (which bakes values at build time)
+   ============================================================ */
+
+/* Backgrounds */
+.bg-background { background-color: var(--bg); }
+.bg-card       { background-color: var(--card-bg); }
+.bg-accent     { background-color: var(--accent); }
+.bg-accent-bg  { background-color: var(--accent-bg); }
+.bg-input-bg   { background-color: var(--input-bg); }
+
+/* Hover backgrounds */
+.hover\:bg-accent-hover:hover { background-color: var(--accent-hover); }
+.hover\:bg-accent-bg:hover    { background-color: var(--accent-bg); }
+
+/* Text colors */
+.text-foreground     { color: var(--fg); }
+.text-text-secondary { color: var(--text-secondary); }
+.text-text-muted     { color: var(--text-muted); }
+.text-accent         { color: var(--accent); }
+
+/* Hover text */
+.hover\:text-foreground:hover      { color: var(--fg); }
+.hover\:text-accent:hover          { color: var(--accent); }
+.hover\:text-accent-hover:hover    { color: var(--accent-hover); }
+
+/* Border colors */
+.border-border-card  { border-color: var(--card-border); }
+.border-input-border { border-color: var(--input-border); }
+
+/* Focus borders */
+.focus\:border-accent:focus { border-color: var(--accent); }
+
+/* Fonts */
+.font-sans { font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif; }
 
 /* ---- Body ---- */
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
 }
+
+/* ---- Ring utilities ---- */
+.ring-offset-card { --tw-ring-offset-color: var(--card-bg); }
 
 /* ---- Glass card support ---- */
 .backdrop-blur-xl {

@@ -44,24 +44,20 @@ const ThemeContext = createContext<ThemeContextValue | null>(null);
 function applyTheme(settings: ThemeSettings) {
   const root = document.documentElement;
 
-  // Theme mode
+  // --- Theme mode: manage BOTH dark and light classes ---
+  root.classList.remove("dark", "light");
+
   if (settings.theme === "system") {
     const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    root.classList.toggle("dark", prefersDark);
+    root.classList.add(prefersDark ? "dark" : "light");
   } else {
-    root.classList.toggle("dark", settings.theme === "dark");
+    root.classList.add(settings.theme); // "dark" or "light"
   }
 
-  // Accent — set via data attribute, CSS picks it up
+  // --- Data attributes ---
   root.setAttribute("data-accent", settings.accent);
-
-  // Card style
   root.setAttribute("data-card-style", settings.cardStyle);
-
-  // Border style
   root.setAttribute("data-border-style", settings.borderStyle);
-
-  // Card density
   root.setAttribute("data-card-density", settings.cardDensity);
 }
 
@@ -118,7 +114,6 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   return (
     <ThemeContext.Provider value={{ settings, updateSetting, resetSettings }}>
-      {/* Prevent flash: don't render children with wrong theme until hydrated */}
       {mounted ? children : <div style={{ visibility: "hidden" }}>{children}</div>}
     </ThemeContext.Provider>
   );
