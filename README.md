@@ -94,3 +94,16 @@ See the [docs/](./docs) folder for:
 ## License
 
 Private project.
+
+## Author
+
+**Sajed Lopez Mendoza**
+
+| | |
+|---|---|
+| Portfolio | [sajed-lopez-mendoza.vercel.app](https://sajed-lopez-mendoza.vercel.app) |
+| GitHub | [github.com/qppd](https://github.com/qppd) |
+| Facebook (Dev Account) | [facebook.com/qppd.dev](https://facebook.com/qppd.dev) |
+| Facebook (QPPD Page) | [facebook.com/QPPD](https://facebook.com/QPPD) |
+| TikTok | [@jed.lopez.mendoza.dev](https://tiktok.com/@jed.lopez.mendoza.dev) |
+| Email | [quezon.province.pd@gmail.com](mailto:quezon.province.pd@gmail.com) |
