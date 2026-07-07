@@ -42,38 +42,42 @@ export default function GatewaysPage() {
     <div className="max-w-4xl mx-auto px-4 py-8">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Gateways</h1>
-          <p className="text-sm text-text-secondary mt-1">{gateways.length} gateway{gateways.length !== 1 ? "s" : ""}</p>
+          <h1 className="text-2xl font-bold text-[#183B6B] font-heading">Gateways</h1>
+          <p className="text-sm text-[#6B7280] mt-1 font-body">{gateways.length} gateway{gateways.length !== 1 ? "s" : ""}</p>
         </div>
       </div>
 
       {isLoading && <div className="text-center py-12"><p className="text-text-muted">Loading gateways...</p></div>}
 
       {error && (
-        <div className="bg-red-900/30 border border-red-800 rounded-lg p-4 text-sm text-red-300 mb-6">Failed to load gateways</div>
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-sm text-red-600 mb-6">Failed to load gateways</div>
       )}
 
       {!isLoading && gateways.length === 0 && (
         <div className="text-center py-12">
-          <p className="text-text-muted text-lg mb-2">No gateways found</p>
-          <p className="text-text-muted text-sm">Add a gateway through the TTLock mobile app first.</p>
+          <p className="text-[#6B7280] text-lg mb-2 font-body">No gateways found</p>
+          <p className="text-[#9CA3AF] text-sm font-body">Add a gateway through the TTLock mobile app first.</p>
         </div>
       )}
 
       <div className="space-y-3">
         {gateways.map((gw) => (
-          <div key={gw.gatewayId} className="bg-card border border-border-card rounded-lg p-4">
+          <div key={gw.gatewayId} className="bg-white border border-[#E5E7EB] rounded-lg p-4 shadow-card">
             <div className="flex items-center justify-between mb-3">
               <div>
-                <h3 className="text-foreground font-medium">{gw.gatewayName || `Gateway #${gw.gatewayId}`}</h3>
-                <p className="text-text-muted text-xs mt-0.5">ID: {gw.gatewayId} · v{gw.gatewayVersion}</p>
+                <h3 className="text-[#183B6B] font-heading font-semibold">{gw.gatewayName || `Gateway #${gw.gatewayId}`}</h3>
+                <p className="text-[#9CA3AF] text-xs mt-0.5 font-body">ID: {gw.gatewayId} · v{gw.gatewayVersion}</p>
               </div>
-              <span className={`text-xs px-2 py-0.5 rounded-full ${gw.isOnline ? "text-green-400 bg-green-900/30" : "text-red-400 bg-red-900/30"}`}>
+              <span className={`text-xs px-2 py-0.5 rounded-full font-body ${
+                gw.isOnline
+                  ? "text-[#22C55E] bg-green-50"
+                  : "text-[#EF4444] bg-red-50"
+              }`}>
                 {gw.isOnline ? "Online" : "Offline"}
               </span>
             </div>
-            <div className="flex gap-4 text-xs text-text-muted">
-              <span>MAC: <span className="font-mono text-text-secondary">{gw.gatewayMac}</span></span>
+            <div className="flex gap-4 text-xs text-[#9CA3AF] font-body">
+              <span>MAC: <span className="font-mono text-[#6B7280]">{gw.gatewayMac}</span></span>
               <span>Locks: {gw.lockNum}</span>
               {gw.rssi != null && <span>Signal: {gw.rssi} dBm</span>}
             </div>

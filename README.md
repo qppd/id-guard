@@ -18,12 +18,35 @@ A Next.js web application for managing TTLock-compatible smart locks remotely vi
 ## Tech Stack
 
 | Layer | Tech |
-|---|---|
-| Framework | Next.js 16 (App Router, Turbopack) |
-| Language | TypeScript 5 |
-| UI | React 19 + Tailwind CSS 4 |
-| Data Fetching | SWR 2 |
-| API Target | TTLock Cloud API V3 (sciener.com) |
+|---|---|---|
+|| Framework | Next.js 16 (App Router, Turbopack) |
+|| Language | TypeScript 5 |
+|| UI | React 19 + Tailwind CSS 4 |
+|| Data Fetching | SWR 2 |
+|| API Target | TTLock Cloud API V3 (sciener.com) |
+
+## Brand Identity
+
+IDGuard uses a **Clean • Elegant • Modern • Professional** design system:
+
+| Purpose | Color | Hex |
+|---|---|---|
+| Primary Brand | Deep Navy | `#183B6B` |
+| Secondary Brand | Royal Blue | `#3B82F6` |
+| Accent Hover | Soft Sky Blue | `#DCEEFF` |
+| Main Background | Pure White | `#FFFFFF` |
+| Secondary Background | Warm Cream | `#F8F6F2` |
+| Primary Text | Charcoal Gray | `#1F2937` |
+| Secondary Text | Slate Gray | `#6B7280` |
+| Borders | Light Gray | `#E5E7EB` |
+| Success | Green | `#22C55E` |
+| Warning | Amber | `#F59E0B` |
+| Error | Red | `#EF4444` |
+| Info | Royal Blue | `#3B82F6` |
+
+**Typography:** Poppins (headings, Deep Navy `#183B6B`) · Inter (body text, Charcoal Gray `#1F2937`)
+
+**Color distribution:** 60% White · 25% Cream · 15% Blue
 
 ## Quick Start
 

@@ -17,8 +17,8 @@ export default function LoginPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <p className="text-text-muted">Loading...</p>
+      <div className="min-h-screen flex items-center justify-center bg-[#F8F6F2]">
+        <p className="text-[#6B7280]">Loading...</p>
       </div>
     );
   }

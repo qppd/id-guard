@@ -187,3 +187,24 @@ flowchart LR
     DATA --> END
     CONDITION -->|No| END
 ```
+
+---
+
+## Design System
+
+IDGuard uses a **Clean • Elegant • Modern • Professional** visual identity:
+
+| Component | Style |
+|---|---|
+| **Navbar** | Deep Navy `#183B6B` bg, white text, Royal Blue `#3B82F6` active, Soft Sky Blue `#DCEEFF` hover |
+| **Landing page** | White bg, Deep Navy heading, Charcoal Gray `#1F2937` description, Deep Navy CTA |
+| **Cards** | White bg, Light Gray `#E5E7EB` border, very soft shadow, Deep Navy title |
+| **Primary button** | Deep Navy bg, white text, `#2A5CA5` hover |
+| **Secondary button** | White bg, Deep Navy border & text, Soft Sky Blue hover |
+| **Inputs** | White bg, Light Gray border, Royal Blue focus ring |
+| **Headings** | Poppins font, Deep Navy `#183B6B` |
+| **Body** | Inter font, Charcoal Gray `#1F2937` |
+| **Status** | `#22C55E` success · `#F59E0B` warning · `#EF4444` error · `#3B82F6` info |
+| **Alternate sections** | Warm Cream `#F8F6F2` background |
+
+The Settings page also offers Dark/Light/System mode toggle, 6 accent colors, glass card style, and adjustable border styles — all persisted to localStorage.

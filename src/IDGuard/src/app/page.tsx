@@ -35,13 +35,16 @@ export default function Home() {
         className="mb-6"
         priority
       />
-      <p className="text-text-secondary mb-8 max-w-md">
+      <h1 className="text-3xl md:text-4xl font-heading font-bold text-[#183B6B] mb-4">
+        Smart Lock Management
+      </h1>
+      <p className="text-[#1F2937] mb-8 max-w-md text-lg font-body">
         Manage your TTLock-compatible smart locks — lock/unlock remotely, share eKeys,
         and monitor your devices from anywhere.
       </p>
       <a
         href="/login"
-        className="px-6 py-3 rounded-lg bg-accent text-white font-medium hover:bg-accent-hover transition-colors"
+        className="px-6 py-3 rounded-lg bg-[#183B6B] text-white font-medium hover:bg-[#2A5CA5] transition-colors font-body"
       >
         Sign In
       </a>

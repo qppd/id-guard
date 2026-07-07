@@ -201,3 +201,41 @@ flowchart LR
 2. **httpOnly cookies** — `tt_token` and `tt_refresh` set server-side, inaccessible to JavaScript
 3. **Every API route checks auth first** — reads `tt_token` cookie; returns 401 if missing
 4. **Dynamic imports** — `await import("@/lib/ttlock")` per route handler to avoid client-side bundling of secrets
+
+---
+
+## Design System
+
+IDGuard follows a **Clean • Elegant • Modern • Professional** brand identity:
+
+### Color Palette
+
+| Usage | Color | Hex |
+|---|---|---|
+| Navbar background | Deep Navy | `#183B6B` |
+| Active nav / links / focus | Royal Blue | `#3B82F6` |
+| Hover states / alt backgrounds | Soft Sky Blue | `#DCEEFF` |
+| Page backgrounds | Pure White | `#FFFFFF` |
+| Alternate sections / form bg | Warm Cream | `#F8F6F2` |
+| Primary text / headings | Charcoal Gray | `#1F2937` |
+| Secondary text / captions | Slate Gray | `#6B7280` |
+| Card & input borders | Light Gray | `#E5E7EB` |
+| Success indicators | Green | `#22C55E` |
+| Warning indicators | Amber | `#F59E0B` |
+| Error indicators | Red | `#EF4444` |
+
+### Typography
+
+- **Headings:** Poppins (weights 400–700), Deep Navy `#183B6B`
+- **Body text:** Inter, Charcoal Gray `#1F2937`
+- **Captions:** Slate Gray `#6B7280`
+
+### Theme System
+
+The app includes a runtime theme system (`src/contexts/ThemeContext.tsx`) with:
+- **Dark/Light/System** mode toggle (default: light)
+- **6 accent color** presets (default: Deep Navy blue)
+- **Card style**: Solid or Glass
+- **Border style**: Full, Subtle, or None
+- **Layout**: Grid/List view, Default/Compact density
+- All preferences persisted to `localStorage`

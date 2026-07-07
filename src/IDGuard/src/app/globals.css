@@ -1,50 +1,78 @@
 @import "tailwindcss";
 
 /* ============================================================
-   TTLock Theme System — Runtime CSS Custom Properties
-   All utility classes use var() resolved at runtime.
+   IDGuard Brand Palette — Light Mode (default)
+   Theme: Clean • Elegant • Modern • Professional
    ============================================================ */
-
-/* ---- Dark theme (default) ---- */
 :root {
-  --bg: #0a0a0a;
-  --fg: #ededed;
-  --card-bg: #111111;
-  --card-border: #1f1f1f;
-  --card-border-subtle: rgba(31, 31, 31, 0.4);
-  --text-secondary: #9ca3af;
-  --text-muted: #6b7280;
-  --input-bg: #1a1a1a;
-  --input-border: #333;
+  /* Main backgrounds */
+  --bg: #FFFFFF;            /* Pure White */
+  --bg-alt: #F8F6F2;        /* Warm Cream */
+  --card-bg: #FFFFFF;       /* Pure White */
 
+  /* Text */
+  --fg: #1F2937;            /* Charcoal Gray (primary text) */
+  --text-secondary: #6B7280; /* Slate Gray */
+  --text-muted: #9CA3AF;
+
+  /* Borders */
+  --card-border: #E5E7EB;   /* Light Gray */
+  --card-border-subtle: rgba(229, 231, 235, 0.5);
+  --input-border: #E5E7EB;  /* Light Gray */
+
+  /* Inputs */
+  --input-bg: #FFFFFF;      /* White */
+
+  /* Brand accent — Deep Navy (primary buttons, CTA, active states) */
   --accent-hue: 217;
-  --accent-sat: 91%;
-  --accent-lgt: 60%;
+  --accent-sat: 63%;
+  --accent-lgt: 26%;
+
+  /* Link colors — Royal Blue (#3B82F6) */
+  --link: #3B82F6;
+  --link-hover: #183B6B;
+
+  /* Hover backgrounds — Soft Sky Blue */
+  --accent-bg-color: #DCEEFF;
+
+  /* Focus ring — Royal Blue */
+  --focus-ring: #3B82F6;
+
+  /* Status colors */
+  --status-success: #22C55E;
+  --status-warning: #F59E0B;
+  --status-error: #EF4444;
+  --status-info: #3B82F6;
 }
 
-/* ---- Light theme ---- */
-.light {
-  --bg: #f5f5f5;
-  --fg: #171717;
-  --card-bg: #ffffff;
-  --card-border: #e5e7eb;
-  --card-border-subtle: rgba(229, 231, 235, 0.5);
-  --text-secondary: #4b5563;
-  --text-muted: #9ca3af;
-  --input-bg: #ffffff;
-  --input-border: #d1d5db;
+/* ---- Dark theme ---- */
+.dark {
+  --bg: #0F172A;
+  --bg-alt: #1E293B;
+  --card-bg: #1E293B;
+  --fg: #F1F5F9;
+  --text-secondary: #94A3B8;
+  --text-muted: #64748B;
+  --card-border: #334155;
+  --card-border-subtle: rgba(51, 65, 85, 0.5);
+  --input-bg: #1E293B;
+  --input-border: #475569;
+  --link: #60A5FA;
+  --link-hover: #93C5FD;
+  --accent-bg-color: #1E3A5F;
+  --focus-ring: #60A5FA;
 }
 
 /* ---- Derived accent vars (dynamic, based on hue/sat/lgt) ---- */
 :root {
   --accent: hsl(var(--accent-hue), var(--accent-sat), var(--accent-lgt));
-  --accent-hover: hsl(var(--accent-hue), var(--accent-sat), calc(var(--accent-lgt) - 8%));
-  --accent-bg: hsl(var(--accent-hue), var(--accent-sat), var(--accent-lgt) / 0.15);
-  --accent-text: hsl(var(--accent-hue), var(--accent-sat), calc(var(--accent-lgt) + 10%));
+  --accent-hover: hsl(var(--accent-hue), var(--accent-sat), calc(var(--accent-lgt) + 10%));
+  --accent-bg: hsl(var(--accent-hue), var(--accent-sat), var(--accent-lgt) / 0.10);
+  --accent-text: #FFFFFF;
 }
 
 /* ---- Accent palettes ---- */
-[data-accent="blue"]   { --accent-hue: 217; --accent-sat: 91%;  --accent-lgt: 60%; }
+[data-accent="blue"]   { --accent-hue: 217; --accent-sat: 63%;  --accent-lgt: 26%; }  /* Deep Navy */
 [data-accent="green"]  { --accent-hue: 142; --accent-sat: 71%;  --accent-lgt: 45%; }
 [data-accent="purple"] { --accent-hue: 271; --accent-sat: 81%;  --accent-lgt: 56%; }
 [data-accent="orange"] { --accent-hue: 24;  --accent-sat: 95%;  --accent-lgt: 53%; }
@@ -69,8 +97,7 @@
 }
 
 /* ============================================================
-   RUNTIME UTILITY CLASSES — resolve var() at runtime,
-   NOT via @theme inline (which bakes values at build time)
+   RUNTIME UTILITY CLASSES — resolve var() at runtime
    ============================================================ */
 
 /* Backgrounds */
@@ -79,37 +106,72 @@
 .bg-accent     { background-color: var(--accent); }
 .bg-accent-bg  { background-color: var(--accent-bg); }
 .bg-input-bg   { background-color: var(--input-bg); }
+.bg-alt        { background-color: var(--bg-alt); }
+.bg-sky        { background-color: var(--accent-bg-color); }
 
 /* Hover backgrounds */
 .hover\:bg-accent-hover:hover { background-color: var(--accent-hover); }
 .hover\:bg-accent-bg:hover    { background-color: var(--accent-bg); }
+.hover\:bg-sky:hover          { background-color: var(--accent-bg-color); }
 
 /* Text colors */
 .text-foreground     { color: var(--fg); }
 .text-text-secondary { color: var(--text-secondary); }
 .text-text-muted     { color: var(--text-muted); }
 .text-accent         { color: var(--accent); }
+.text-link           { color: var(--link); }
+.text-link-hover     { color: var(--link-hover); }
 
 /* Hover text */
 .hover\:text-foreground:hover      { color: var(--fg); }
 .hover\:text-accent:hover          { color: var(--accent); }
 .hover\:text-accent-hover:hover    { color: var(--accent-hover); }
+.hover\:text-link:hover            { color: var(--link); }
+.hover\:text-link-hover:hover      { color: var(--link-hover); }
 
 /* Border colors */
 .border-border-card  { border-color: var(--card-border); }
 .border-input-border { border-color: var(--input-border); }
+.border-accent       { border-color: var(--accent); }
 
-/* Focus borders */
-.focus\:border-accent:focus { border-color: var(--accent); }
+/* Focus ring/border */
+.focus\:border-focus-ring:focus { border-color: var(--focus-ring); }
+.focus\:ring-focus-ring:focus   { ring-color: var(--focus-ring); }
 
-/* Fonts */
-.font-sans { font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif; }
+/* Buttons */
+.btn-primary {
+  background-color: var(--accent);
+  color: white;
+}
+.btn-primary:hover {
+  background-color: var(--accent-hover);
+}
+
+.btn-secondary {
+  background-color: transparent;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+}
+.btn-secondary:hover {
+  background-color: var(--accent-bg-color);
+}
+
+/* Typography */
+.font-heading { font-family: var(--font-poppins), sans-serif; }
+.font-body    { font-family: var(--font-inter), sans-serif; }
+.text-caption { color: var(--text-secondary); font-size: 0.75rem; }
 
 /* ---- Body ---- */
 body {
   background: var(--bg);
   color: var(--fg);
-  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  font-family: var(--font-inter), Arial, Helvetica, sans-serif;
+}
+
+/* ---- Heading default style (Deep Navy, Poppins) ---- */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-poppins), sans-serif;
+  color: var(--accent);
 }
 
 /* ---- Ring utilities ---- */
@@ -119,4 +181,9 @@ body {
 .backdrop-blur-xl {
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
+}
+
+/* ---- Card shadow (very soft) ---- */
+.shadow-card {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
 }

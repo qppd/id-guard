@@ -42,8 +42,21 @@ Next.js 16 provides:
 
 - **React 19** — Concurrent features, improved server components, enhanced hooks
 - **Tailwind CSS 4** — CSS-first configuration, `@tailwindcss/postcss` plugin, no `tailwind.config.js` needed
-- **Dark theme** — All UI uses `bg-black`, `bg-gray-900`, `border-gray-800` for a consistent dark mode
-- **Responsive** — Grid layouts adapt via `sm:`, `md:`, `lg:` breakpoints
+- **Brand color palette** — IDGuard design system using custom CSS variables:
+
+  | Role | Color | CSS Var |
+  |---|---|---|
+  | Primary Brand (Deep Navy) | `#183B6B` | `--accent` (hsl) |
+  | Secondary Brand (Royal Blue) | `#3B82F6` | `--link`, `--focus-ring` |
+  | Soft Sky Blue | `#DCEEFF` | `--accent-bg-color` |
+  | Main Background | `#FFFFFF` | `--bg` |
+  | Warm Cream (Alt) | `#F8F6F2` | `--bg-alt` |
+  | Charcoal Gray (Text) | `#1F2937` | `--fg` |
+  | Slate Gray (Secondary) | `#6B7280` | `--text-secondary` |
+  | Light Gray (Borders) | `#E5E7EB` | `--card-border`, `--input-border` |
+
+- **Typography**: Poppins (headings via `font-heading`), Inter (body via `font-body`)
+- **Runtime theme system** — CSS custom properties + data attributes for accent color switching, card style (solid/glass), border style, and dark/light/system mode
 
 ### Data Fetching: SWR 2
 

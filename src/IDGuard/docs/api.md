@@ -810,3 +810,25 @@ All internal routes follow this response convention:
 HTTP status codes: `400` (bad request), `401` (not authenticated), `502` (TTLock API error).
 
 **Note:** The webhook endpoint uses TTLock's native response format (`errcode`/`errmsg`) instead of the `ok`/`error` wrapper.
+
+---
+
+## Design System
+
+All UI pages use the IDGuard brand palette:
+
+| Element | Color | Hex |
+|---|---|---|
+| Navbar | Deep Navy | `#183B6B` |
+| Active menu / focus | Royal Blue | `#3B82F6` |
+| Hover state | Soft Sky Blue | `#DCEEFF` |
+| Page background | Pure White | `#FFFFFF` |
+| Alt section / form bg | Warm Cream | `#F8F6F2` |
+| Primary / heading text | Charcoal Gray | `#1F2937` |
+| Secondary / captions | Slate Gray | `#6B7280` |
+| Borders | Light Gray | `#E5E7EB` |
+| Success badges | Green | `#22C55E` |
+| Warning badges | Amber | `#F59E0B` |
+| Error badges | Red | `#EF4444` |
+
+**Typography:** Poppins (headings) · Inter (body) · CSS variables via runtime theme system (see `globals.css`)

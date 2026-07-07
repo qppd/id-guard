@@ -23,8 +23,8 @@ export interface ThemeSettings {
 const STORAGE_KEY = "ttlock-settings";
 
 const defaultSettings: ThemeSettings = {
-  theme: "dark",
-  accent: "blue",
+  theme: "light",
+  accent: "blue",      /* Deep Navy via globals.css */
   cardStyle: "solid",
   borderStyle: "full",
   lockView: "grid",
