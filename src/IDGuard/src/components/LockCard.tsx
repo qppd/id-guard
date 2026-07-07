@@ -35,20 +35,20 @@ export default function LockCard({
         : "bg-red-50";
 
   return (
-    <div className="bg-white border border-[#E5E7EB] rounded-lg p-4 hover:border-[#3B82F6]/40 transition-colors shadow-card">
-      <div className="flex items-start justify-between mb-3">
-        <div>
-          <h3 className="text-[#183B6B] font-heading font-semibold">{lockName}</h3>
+    <div className="bg-white border border-[#E5E7EB] rounded-lg p-3 sm:p-4 hover:border-[#3B82F6]/40 transition-colors shadow-card">
+      <div className="flex items-start justify-between mb-2 sm:mb-3">
+        <div className="min-w-0 flex-1 mr-2">
+          <h3 className="text-[#183B6B] font-heading font-semibold text-sm sm:text-base truncate">{lockName}</h3>
           {lockAlias && (
-            <p className="text-[#6B7280] text-xs mt-0.5 font-body">{lockAlias}</p>
+            <p className="text-[#6B7280] text-xs mt-0.5 font-body truncate">{lockAlias}</p>
           )}
         </div>
-        <span className={`text-xs px-2 py-0.5 rounded-full ${batteryColor} ${batteryBg} font-body`}>
+        <span className={`shrink-0 text-xs px-2 py-0.5 rounded-full ${batteryColor} ${batteryBg} font-body`}>
           {battery}%
         </span>
       </div>
 
-      <div className="flex gap-2 text-xs text-[#9CA3AF] mb-3 font-body">
+      <div className="flex gap-1.5 text-xs text-[#9CA3AF] mb-2 sm:mb-3 font-body flex-wrap">
         <span>ID: {lockId}</span>
         <span>•</span>
         <span>Gateway: {hasGateway ? "Yes" : "No"}</span>
@@ -62,16 +62,16 @@ export default function LockCard({
 
       <div className="flex gap-2">
         <button
-          onClick={() => onAction(lockId, "unlock")}
+          onClick={(e) => { e.preventDefault(); onAction(lockId, "unlock"); }}
           disabled={loading}
-          className="flex-1 py-1.5 rounded text-sm font-medium border border-[#183B6B] text-[#183B6B] hover:bg-[#DCEEFF] disabled:opacity-50 transition-colors font-body"
+          className="flex-1 py-2 sm:py-1.5 rounded text-sm font-medium border border-[#183B6B] text-[#183B6B] hover:bg-[#DCEEFF] disabled:opacity-50 transition-colors font-body active:scale-[0.98]"
         >
           Unlock
         </button>
         <button
-          onClick={() => onAction(lockId, "lock")}
+          onClick={(e) => { e.preventDefault(); onAction(lockId, "lock"); }}
           disabled={loading}
-          className="flex-1 py-1.5 rounded text-sm font-medium bg-[#183B6B] text-white hover:bg-[#2A5CA5] disabled:opacity-50 transition-colors font-body"
+          className="flex-1 py-2 sm:py-1.5 rounded text-sm font-medium bg-[#183B6B] text-white hover:bg-[#2A5CA5] disabled:opacity-50 transition-colors font-body active:scale-[0.98]"
         >
           Lock
         </button>

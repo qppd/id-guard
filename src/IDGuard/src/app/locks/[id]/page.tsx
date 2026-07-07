@@ -265,17 +265,17 @@ export default function LockDetailPage() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
-      <button onClick={() => router.back()} className="text-[#3B82F6] hover:text-[#183B6B] text-sm mb-4 font-body">&larr; Back</button>
+    <div className="container-page py-4 sm:py-8">
+      <button onClick={() => router.back()} className="text-[#3B82F6] hover:text-[#183B6B] text-sm mb-3 sm:mb-4 font-body">&larr; Back</button>
 
       {/* Lock Header */}
-      <div className="bg-white border border-[#E5E7EB] rounded-lg p-6 mb-6 shadow-card">
-        <div className="flex items-start justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-[#183B6B] font-heading">{detail?.lockName || `Lock #${lockId}`}</h1>
-            {detail?.lockAlias && <p className="text-[#6B7280] text-sm mt-1 font-body">{detail.lockAlias}</p>}
+      <div className="bg-white border border-[#E5E7EB] rounded-lg p-4 sm:p-6 mb-4 sm:mb-6 shadow-card">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-0">
+          <div className="min-w-0 flex-1">
+            <h1 className="text-xl sm:text-2xl font-bold text-[#183B6B] font-heading truncate">{detail?.lockName || `Lock #${lockId}`}</h1>
+            {detail?.lockAlias && <p className="text-[#6B7280] text-sm mt-1 font-body truncate">{detail.lockAlias}</p>}
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 shrink-0">
             {/* Door Sensor */}
             {doorRes?.data != null && (
               <span className={`text-xs px-2 py-1 rounded-full font-body ${
@@ -286,26 +286,26 @@ export default function LockDetailPage() {
                 {doorRes.data.doorState ? "Open" : "Closed"}
               </span>
             )}
-            <span className={`text-lg font-bold ${batteryColor} ${batteryBg} px-2 py-1 rounded`}>
+            <span className={`text-base sm:text-lg font-bold ${batteryColor} ${batteryBg} px-2 py-1 rounded`}>
               {detail != null ? `${detail.electricQuantity}%` : "..."}
             </span>
           </div>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-6 text-sm">
-          <div><span className="text-[#9CA3AF]">ID</span><p className="text-[#1F2937] font-body">{detail?.lockId}</p></div>
-          <div><span className="text-[#9CA3AF]">MAC</span><p className="text-[#1F2937] font-mono text-xs">{detail?.lockMac || "—"}</p></div>
+        <div className="grid-detail-info mt-4 sm:mt-6 text-sm">
+          <div><span className="text-[#9CA3AF]">ID</span><p className="text-[#1F2937] font-body break-all">{detail?.lockId}</p></div>
+          <div className="sm:col-span-1"><span className="text-[#9CA3AF]">MAC</span><p className="text-[#1F2937] font-mono text-xs break-all">{detail?.lockMac || "—"}</p></div>
           <div><span className="text-[#9CA3AF]">Gateway</span><p className="text-[#1F2937] font-body">{detail?.hasGateway ? "Connected" : "None"}</p></div>
           <div><span className="text-[#9CA3AF]">Firmware</span><p className="text-[#1F2937] font-body">{detail?.firmwareRevision || "—"}</p></div>
           <div><span className="text-[#9CA3AF]">Hardware</span><p className="text-[#1F2937] font-body">{detail?.hardwareRevision != null ? `v${detail.hardwareRevision}` : "—"}</p></div>
-          <div><span className="text-[#9CA3AF]">Admin Code</span><p className="text-[#1F2937] font-mono text-xs break-all">{detail?.adminPwd || "—"}</p></div>
+          <div className="sm:col-span-1"><span className="text-[#9CA3AF]">Admin Code</span><p className="text-[#1F2937] font-mono text-xs break-all">{detail?.adminPwd || "—"}</p></div>
         </div>
 
         {/* Upgrade */}
-        <div className="mt-4 flex gap-3">
-          <button onClick={handleCheckUpgrade} className="px-3 py-1.5 rounded bg-white border border-[#E5E7EB] text-[#6B7280] text-sm hover:bg-[#DCEEFF] hover:text-[#183B6B] transition-colors font-body">
+        <div className="mt-4 flex flex-col sm:flex-row gap-2 sm:gap-3">
+          <button onClick={handleCheckUpgrade} className="w-full sm:w-auto px-3 py-1.5 rounded bg-white border border-[#E5E7EB] text-[#6B7280] text-sm hover:bg-[#DCEEFF] hover:text-[#183B6B] transition-colors font-body">
             Check Upgrade
           </button>
-          {upgradeInfo && <p className="text-xs text-[#6B7280] self-center font-body">{upgradeInfo}</p>}
+          {upgradeInfo && <p className="text-xs text-[#6B7280] self-start sm:self-center font-body">{upgradeInfo}</p>}
         </div>
       </div>
 
@@ -313,7 +313,7 @@ export default function LockDetailPage() {
       {err && <p className="text-[#EF4444] text-xs bg-red-50 border border-red-200 rounded-lg p-3 mb-4">{err}</p>}
       {msg && <p className="text-[#22C55E] text-xs bg-green-50 border border-green-200 rounded-lg p-3 mb-4">{msg}</p>}
 
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid-2col-responsive">
         {/* Passcodes */}
         <div className="bg-white border border-[#E5E7EB] rounded-lg p-4 shadow-card">
           <div className="flex items-center justify-between mb-3">
@@ -450,9 +450,9 @@ export default function LockDetailPage() {
       </div>
 
       {/* Unlock Records */}
-      <div className="bg-white border border-[#E5E7EB] rounded-lg p-4 mt-6 shadow-card">
-        <button onClick={() => setRecordsExpanded(!recordsExpanded)} className="flex items-center justify-between w-full">
-          <h2 className="text-lg font-heading font-semibold text-[#183B6B]">Unlock Records ({recRes?.total ?? 0})</h2>
+      <div className="bg-white border border-[#E5E7EB] rounded-lg p-4 mt-4 sm:mt-6 shadow-card">
+      <button onClick={() => setRecordsExpanded(!recordsExpanded)} className="flex items-center justify-between w-full">
+        <h2 className="text-base sm:text-lg font-heading font-semibold text-[#183B6B]">Unlock Records ({recRes?.total ?? 0})</h2>
           <span className="text-[#9CA3AF]">{recordsExpanded ? "\u25B2" : "\u25BC"}</span>
         </button>
         {recordsExpanded && (
@@ -478,9 +478,9 @@ export default function LockDetailPage() {
       </div>
 
       {/* Lock Config */}
-      <div className="bg-white border border-[#E5E7EB] rounded-lg p-4 mt-6 shadow-card">
+      <div className="bg-white border border-[#E5E7EB] rounded-lg p-4 mt-4 sm:mt-6 shadow-card">
         <button onClick={() => setConfigExpanded(!configExpanded)} className="flex items-center justify-between w-full">
-          <h2 className="text-lg font-heading font-semibold text-[#183B6B]">Lock Config</h2>
+          <h2 className="text-base sm:text-lg font-heading font-semibold text-[#183B6B]">Lock Config</h2>
           <span className="text-[#9CA3AF]">{configExpanded ? "\u25B2" : "\u25BC"}</span>
         </button>
         {configExpanded && configRes?.data && (

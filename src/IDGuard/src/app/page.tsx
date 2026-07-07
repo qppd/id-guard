@@ -32,19 +32,19 @@ export default function Home() {
         alt="IDGuard"
         width={280}
         height={84}
-        className="mb-6"
+        className="logo-responsive mb-4 sm:mb-6"
         priority
       />
-      <h1 className="text-3xl md:text-4xl font-heading font-bold text-[#183B6B] mb-4">
+      <h1 className="text-2xl sm:text-3xl md:text-4xl font-heading font-bold text-[#183B6B] mb-3 sm:mb-4">
         Smart Lock Management
       </h1>
-      <p className="text-[#1F2937] mb-8 max-w-md text-lg font-body">
+      <p className="text-[#1F2937] mb-8 max-w-md text-sm sm:text-lg font-body">
         Manage your TTLock-compatible smart locks — lock/unlock remotely, share eKeys,
         and monitor your devices from anywhere.
       </p>
       <a
         href="/login"
-        className="px-6 py-3 rounded-lg bg-[#183B6B] text-white font-medium hover:bg-[#2A5CA5] transition-colors font-body"
+        className="px-8 py-3 sm:px-6 sm:py-3 rounded-lg bg-[#183B6B] text-white font-medium hover:bg-[#2A5CA5] transition-colors font-body text-base sm:text-sm"
       >
         Sign In
       </a>

@@ -39,11 +39,11 @@ export default function GatewaysPage() {
   const gateways = data?.data ?? [];
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
-      <div className="flex items-center justify-between mb-6">
+    <div className="container-page py-4 sm:py-8">
+      <div className="flex items-center justify-between mb-4 sm:mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-[#183B6B] font-heading">Gateways</h1>
-          <p className="text-sm text-[#6B7280] mt-1 font-body">{gateways.length} gateway{gateways.length !== 1 ? "s" : ""}</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-[#183B6B] font-heading">Gateways</h1>
+          <p className="text-xs sm:text-sm text-[#6B7280] mt-1 font-body">{gateways.length} gateway{gateways.length !== 1 ? "s" : ""}</p>
         </div>
       </div>
 
@@ -62,13 +62,13 @@ export default function GatewaysPage() {
 
       <div className="space-y-3">
         {gateways.map((gw) => (
-          <div key={gw.gatewayId} className="bg-white border border-[#E5E7EB] rounded-lg p-4 shadow-card">
-            <div className="flex items-center justify-between mb-3">
-              <div>
-                <h3 className="text-[#183B6B] font-heading font-semibold">{gw.gatewayName || `Gateway #${gw.gatewayId}`}</h3>
+          <div key={gw.gatewayId} className="bg-white border border-[#E5E7EB] rounded-lg p-3 sm:p-4 shadow-card">
+            <div className="flex items-center justify-between mb-2 sm:mb-3">
+              <div className="min-w-0 flex-1 mr-2">
+                <h3 className="text-[#183B6B] font-heading font-semibold text-sm sm:text-base truncate">{gw.gatewayName || `Gateway #${gw.gatewayId}`}</h3>
                 <p className="text-[#9CA3AF] text-xs mt-0.5 font-body">ID: {gw.gatewayId} · v{gw.gatewayVersion}</p>
               </div>
-              <span className={`text-xs px-2 py-0.5 rounded-full font-body ${
+              <span className={`shrink-0 text-xs px-2 py-0.5 rounded-full font-body ${
                 gw.isOnline
                   ? "text-[#22C55E] bg-green-50"
                   : "text-[#EF4444] bg-red-50"
@@ -76,8 +76,8 @@ export default function GatewaysPage() {
                 {gw.isOnline ? "Online" : "Offline"}
               </span>
             </div>
-            <div className="flex gap-4 text-xs text-[#9CA3AF] font-body">
-              <span>MAC: <span className="font-mono text-[#6B7280]">{gw.gatewayMac}</span></span>
+            <div className="flex flex-wrap gap-x-3 sm:gap-4 gap-y-1 text-xs text-[#9CA3AF] font-body">
+              <span>MAC: <span className="font-mono text-[#6B7280] break-all">{gw.gatewayMac}</span></span>
               <span>Locks: {gw.lockNum}</span>
               {gw.rssi != null && <span>Signal: {gw.rssi} dBm</span>}
             </div>

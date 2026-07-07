@@ -34,9 +34,9 @@ function SettingCard({ title, children }: { title: string; children: React.React
 
 function SettingRow({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="flex items-center justify-between py-3 border-b border-[#E5E7EB]/50 last:border-b-0">
+    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 py-3 border-b border-[#E5E7EB]/50 last:border-b-0">
       <span className="text-sm text-[#6B7280] font-body">{label}</span>
-      <div className="flex items-center gap-2">{children}</div>
+      <div className="flex items-center gap-2 self-start sm:self-center">{children}</div>
     </div>
   );
 }
@@ -82,14 +82,14 @@ export default function SettingsPage() {
   if (!isAuthenticated) return null;
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-8">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-[#183B6B] font-heading">Settings</h1>
+    <div className="container-settings py-4 sm:py-8">
+      <div className="flex items-center justify-between mb-4 sm:mb-6">
+        <h1 className="text-xl sm:text-2xl font-bold text-[#183B6B] font-heading">Settings</h1>
         <Link
           href="/dashboard"
-          className="text-sm text-[#3B82F6] hover:text-[#183B6B] transition-colors font-body"
+          className="text-sm text-[#3B82F6] hover:text-[#183B6B] transition-colors font-body shrink-0"
         >
-          &larr; Back to Dashboard
+          &larr; Back
         </Link>
       </div>
 
@@ -108,7 +108,7 @@ export default function SettingsPage() {
         </SettingRow>
 
         <SettingRow label="Accent Color">
-          <div className="flex gap-1.5">
+          <div className="flex gap-1.5 flex-wrap">
             {ACCENTS.map((a) => (
               <button
                 key={a.value}
@@ -206,7 +206,7 @@ export default function SettingsPage() {
       </SettingCard>
 
       {/* Reset */}
-      <div className="text-center mt-8">
+      <div className="text-center mt-6 sm:mt-8">
         <button
           onClick={resetSettings}
           className="px-4 py-2 rounded bg-red-50 text-[#EF4444] text-sm hover:bg-red-100 border border-red-200 transition-colors font-body"

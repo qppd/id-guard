@@ -44,29 +44,29 @@ export default function DashboardPage() {
   const onlineGateways = gateways.filter((g: Record<string, unknown>) => g.isOnline == 1);
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
+    <div className="container-page py-4 sm:py-8">
       {/* Summary cards */}
       {settings.showSummary && (
-        <div className="grid grid-cols-3 gap-4 mb-6">
-          <div className="bg-white border border-[#E5E7EB] rounded-lg p-4 text-center shadow-card">
-            <p className="text-2xl font-bold text-[#183B6B] font-heading">{locks.length}</p>
+        <div className="grid-summary mb-4 sm:mb-6">
+          <div className="bg-white border border-[#E5E7EB] rounded-lg p-3 sm:p-4 text-center shadow-card">
+            <p className="text-xl sm:text-2xl font-bold text-[#183B6B] font-heading">{locks.length}</p>
             <p className="text-xs text-[#9CA3AF] mt-1 font-body">Locks</p>
           </div>
-          <div className="bg-white border border-[#E5E7EB] rounded-lg p-4 text-center shadow-card">
-            <p className="text-2xl font-bold text-[#183B6B] font-heading">{gateways.length}</p>
+          <div className="bg-white border border-[#E5E7EB] rounded-lg p-3 sm:p-4 text-center shadow-card">
+            <p className="text-xl sm:text-2xl font-bold text-[#183B6B] font-heading">{gateways.length}</p>
             <p className="text-xs text-[#9CA3AF] mt-1 font-body">Gateways</p>
           </div>
-          <div className="bg-white border border-[#E5E7EB] rounded-lg p-4 text-center shadow-card">
-            <p className="text-2xl font-bold text-[#183B6B] font-heading">{onlineGateways.length}</p>
+          <div className="bg-white border border-[#E5E7EB] rounded-lg p-3 sm:p-4 text-center shadow-card">
+            <p className="text-xl sm:text-2xl font-bold text-[#183B6B] font-heading">{onlineGateways.length}</p>
             <p className="text-xs text-[#9CA3AF] mt-1 font-body">Online</p>
           </div>
         </div>
       )}
 
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-4 sm:mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-[#183B6B] font-heading">Dashboard</h1>
-          <p className="text-sm text-[#6B7280] mt-1 font-body">
+          <h1 className="text-xl sm:text-2xl font-bold text-[#183B6B] font-heading">Dashboard</h1>
+          <p className="text-xs sm:text-sm text-[#6B7280] mt-1 font-body">
             {locks.length} lock{locks.length !== 1 ? "s" : ""} on your account
           </p>
         </div>
@@ -93,7 +93,7 @@ export default function DashboardPage() {
         </div>
       )}
 
-      <div className={`gap-4 ${settings.lockView === "list" ? "flex flex-col" : "grid sm:grid-cols-2 lg:grid-cols-3"}`}>
+      <div className={`gap-3 sm:gap-4 ${settings.lockView === "list" ? "flex flex-col" : "grid-locks"}`}>
         {locks.map((lock) => (
           <Link href={`/locks/${lock.lockId}`} className="block" key={lock.lockId}>
             <LockCard

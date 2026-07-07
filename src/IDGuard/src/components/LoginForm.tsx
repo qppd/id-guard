@@ -30,15 +30,15 @@ export default function LoginForm() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background px-4">
-      <div className="w-full max-w-sm">
+    <div className="min-h-screen flex items-center justify-center bg-background px-4 py-6">
+      <div className="w-full max-w-sm mx-auto">
         <div className="text-center mb-8">
           <Image
             src="/logos/id_guard_logo+name.png"
             alt="IDGuard"
             width={200}
             height={60}
-            className="mx-auto mb-3"
+            className="logo-small-responsive mx-auto mb-3"
             priority
           />
           <p className="text-[#6B7280] text-sm font-body">Sign in to manage your locks</p>
@@ -54,7 +54,7 @@ export default function LoginForm() {
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              className="w-full px-3 py-2 rounded bg-white border border-[#E5E7EB] text-[#1F2937] text-sm placeholder-[#9CA3AF] focus:outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6]"
+              className="w-full px-3 py-2.5 sm:py-2 rounded bg-white border border-[#E5E7EB] text-[#1F2937] text-base sm:text-sm placeholder-[#9CA3AF] focus:outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6]"
               placeholder="your@email.com"
               required
             />
@@ -69,7 +69,7 @@ export default function LoginForm() {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-3 py-2 rounded bg-white border border-[#E5E7EB] text-[#1F2937] text-sm placeholder-[#9CA3AF] focus:outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6]"
+              className="w-full px-3 py-2.5 sm:py-2 rounded bg-white border border-[#E5E7EB] text-[#1F2937] text-base sm:text-sm placeholder-[#9CA3AF] focus:outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6]"
               placeholder="••••••••"
               required
             />
@@ -84,7 +84,7 @@ export default function LoginForm() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-2 rounded bg-[#183B6B] text-white text-sm font-medium hover:bg-[#2A5CA5] disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-body"
+            className="w-full py-2.5 sm:py-2 rounded bg-[#183B6B] text-white text-base sm:text-sm font-medium hover:bg-[#2A5CA5] disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-body"
           >
             {loading ? "Signing in..." : "Sign In"}
           </button>
