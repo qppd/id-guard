@@ -124,7 +124,7 @@ Private project.
 
 | | |
 |---|---|
-| Portfolio | [sajed-lopez-mendoza.vercel.app](https://sajed-lopez-mendoza.vercel.app) |
+| Portfolio | [sajed-lopez-mendoza.vercel.app](https://sajed-mendoza.is-pinoy.dev) |
 | GitHub | [github.com/qppd](https://github.com/qppd) |
 | Facebook (Dev Account) | [facebook.com/qppd.dev](https://facebook.com/qppd.dev) |
 | Facebook (QPPD Page) | [facebook.com/QPPD](https://facebook.com/QPPD) |
