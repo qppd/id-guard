@@ -18,6 +18,10 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "IDGuard",
   description: "Manage your TTLock-compatible smart locks from your browser",
+  icons: {
+    icon: "/logos/id_guard_logo.png",
+    apple: "/logos/id_guard_logo.png",
+  },
 };
 
 export default function RootLayout({
