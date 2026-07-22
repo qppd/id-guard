@@ -2,6 +2,7 @@
 
 import { useRef } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { motion, useScroll, useTransform, useSpring } from "framer-motion";
 import dynamic from "next/dynamic";
 import { FadeInView, HoverScale, MouseParallaxLayer, ParallaxLayer, GlowCard } from "@/components/Parallax";
@@ -280,9 +281,9 @@ export default function HomePage() {
             </span>
           </div>
           <div className="flex gap-6 text-sm text-text-secondary font-body">
-            <a href="#" className="hover:text-accent transition-colors">Privacy</a>
-            <a href="#" className="hover:text-accent transition-colors">Terms</a>
-            <a href="#" className="hover:text-accent transition-colors">Contact</a>
+            <Link href="/privacy" className="hover:text-accent transition-colors">Privacy</Link>
+            <Link href="/terms" className="hover:text-accent transition-colors">Terms</Link>
+            <Link href="/contact" className="hover:text-accent transition-colors">Contact</Link>
           </div>
         </div>
       </footer>
