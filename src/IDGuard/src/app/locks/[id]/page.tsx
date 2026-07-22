@@ -251,11 +251,11 @@ export default function LockDetailPage() {
   };
 
   const batteryColor = detail?.electricQuantity != null
-    ? detail.electricQuantity > 50 ? "text-[#22C55E]" : detail.electricQuantity > 20 ? "text-[#F59E0B]" : "text-[#EF4444]"
+    ? detail.electricQuantity > 50 ? "text-success" : detail.electricQuantity > 20 ? "text-warning" : "text-error"
     : "text-text-muted";
 
   const batteryBg = detail?.electricQuantity != null
-    ? detail.electricQuantity > 50 ? "bg-green-50" : detail.electricQuantity > 20 ? "bg-yellow-50" : "bg-red-50"
+    ? detail.electricQuantity > 50 ? "bg-success-soft" : detail.electricQuantity > 20 ? "bg-warning-soft" : "bg-error-soft"
     : "";
 
   const unlockTypeLabel: { [key: number]: string } = {
@@ -266,22 +266,22 @@ export default function LockDetailPage() {
 
   return (
     <div className="container-page py-4 sm:py-8">
-      <button onClick={() => router.back()} className="text-[#3B82F6] hover:text-[#183B6B] text-sm mb-3 sm:mb-4 font-body">&larr; Back</button>
+      <button onClick={() => router.back()} className="text-link hover:text-accent text-sm mb-3 sm:mb-4 font-body">&larr; Back</button>
 
       {/* Lock Header */}
-      <div className="bg-white border border-[#E5E7EB] rounded-lg p-4 sm:p-6 mb-4 sm:mb-6 shadow-card">
+      <div className="card-compact bg-card border border-border-card rounded-lg p-4 sm:p-6 mb-4 sm:mb-6 shadow-card">
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-0">
           <div className="min-w-0 flex-1">
-            <h1 className="text-xl sm:text-2xl font-bold text-[#183B6B] font-heading truncate">{detail?.lockName || `Lock #${lockId}`}</h1>
-            {detail?.lockAlias && <p className="text-[#6B7280] text-sm mt-1 font-body truncate">{detail.lockAlias}</p>}
+            <h1 className="text-xl sm:text-2xl font-bold text-accent font-heading truncate">{detail?.lockName || `Lock #${lockId}`}</h1>
+            {detail?.lockAlias && <p className="text-text-secondary text-sm mt-1 font-body truncate">{detail.lockAlias}</p>}
           </div>
           <div className="flex items-center gap-3 shrink-0">
             {/* Door Sensor */}
             {doorRes?.data != null && (
               <span className={`text-xs px-2 py-1 rounded-full font-body ${
                 doorRes.data.doorState
-                  ? "bg-green-50 text-[#22C55E] border border-green-200"
-                  : "bg-[#F8F6F2] text-[#6B7280] border border-[#E5E7EB]"
+                  ? "bg-success-soft text-success border border-green-200"
+                  : "bg-alt text-text-secondary border border-border-card"
               }`}>
                 {doorRes.data.doorState ? "Open" : "Closed"}
               </span>
@@ -292,62 +292,62 @@ export default function LockDetailPage() {
           </div>
         </div>
         <div className="grid-detail-info mt-4 sm:mt-6 text-sm">
-          <div><span className="text-[#9CA3AF]">ID</span><p className="text-[#1F2937] font-body break-all">{detail?.lockId}</p></div>
-          <div className="sm:col-span-1"><span className="text-[#9CA3AF]">MAC</span><p className="text-[#1F2937] font-mono text-xs break-all">{detail?.lockMac || "—"}</p></div>
-          <div><span className="text-[#9CA3AF]">Gateway</span><p className="text-[#1F2937] font-body">{detail?.hasGateway ? "Connected" : "None"}</p></div>
-          <div><span className="text-[#9CA3AF]">Firmware</span><p className="text-[#1F2937] font-body">{detail?.firmwareRevision || "—"}</p></div>
-          <div><span className="text-[#9CA3AF]">Hardware</span><p className="text-[#1F2937] font-body">{detail?.hardwareRevision != null ? `v${detail.hardwareRevision}` : "—"}</p></div>
-          <div className="sm:col-span-1"><span className="text-[#9CA3AF]">Admin Code</span><p className="text-[#1F2937] font-mono text-xs break-all">{detail?.adminPwd || "—"}</p></div>
+          <div><span className="text-text-muted">ID</span><p className="text-foreground font-body break-all">{detail?.lockId}</p></div>
+          <div className="sm:col-span-1"><span className="text-text-muted">MAC</span><p className="text-foreground font-mono text-xs break-all">{detail?.lockMac || "—"}</p></div>
+          <div><span className="text-text-muted">Gateway</span><p className="text-foreground font-body">{detail?.hasGateway ? "Connected" : "None"}</p></div>
+          <div><span className="text-text-muted">Firmware</span><p className="text-foreground font-body">{detail?.firmwareRevision || "—"}</p></div>
+          <div><span className="text-text-muted">Hardware</span><p className="text-foreground font-body">{detail?.hardwareRevision != null ? `v${detail.hardwareRevision}` : "—"}</p></div>
+          <div className="sm:col-span-1"><span className="text-text-muted">Admin Code</span><p className="text-foreground font-mono text-xs break-all">{detail?.adminPwd || "—"}</p></div>
         </div>
 
         {/* Upgrade */}
         <div className="mt-4 flex flex-col sm:flex-row gap-2 sm:gap-3">
-          <button onClick={handleCheckUpgrade} className="w-full sm:w-auto px-3 py-1.5 rounded bg-white border border-[#E5E7EB] text-[#6B7280] text-sm hover:bg-[#DCEEFF] hover:text-[#183B6B] transition-colors font-body">
+          <button onClick={handleCheckUpgrade} className="w-full sm:w-auto px-3 py-1.5 rounded bg-card border border-border-card text-text-secondary text-sm hover:bg-sky hover:text-accent transition-colors font-body">
             Check Upgrade
           </button>
-          {upgradeInfo && <p className="text-xs text-[#6B7280] self-start sm:self-center font-body">{upgradeInfo}</p>}
+          {upgradeInfo && <p className="text-xs text-text-secondary self-start sm:self-center font-body">{upgradeInfo}</p>}
         </div>
       </div>
 
       {/* Error/success banner */}
-      {err && <p className="text-[#EF4444] text-xs bg-red-50 border border-red-200 rounded-lg p-3 mb-4">{err}</p>}
-      {msg && <p className="text-[#22C55E] text-xs bg-green-50 border border-green-200 rounded-lg p-3 mb-4">{msg}</p>}
+      {err && <p className="text-error text-xs bg-error-soft border border-red-200 rounded-lg p-3 mb-4">{err}</p>}
+      {msg && <p className="text-success text-xs bg-success-soft border border-green-200 rounded-lg p-3 mb-4">{msg}</p>}
 
       <div className="grid-2col-responsive">
         {/* Passcodes */}
-        <div className="bg-white border border-[#E5E7EB] rounded-lg p-4 shadow-card">
+        <div className="card-compact bg-card border border-border-card rounded-lg p-4 shadow-card">
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-lg font-heading font-semibold text-[#183B6B]">Passcodes</h2>
-            <button onClick={() => { setPassForm(!passForm); setIcForm(false); setFpForm(false); }} className="px-3 py-1 rounded bg-[#183B6B] text-white text-sm hover:bg-[#2A5CA5] transition-colors font-body">
+            <h2 className="text-lg font-heading font-semibold text-accent">Passcodes</h2>
+            <button onClick={() => { setPassForm(!passForm); setIcForm(false); setFpForm(false); }} className="px-3 py-1 rounded bg-accent text-white text-sm hover:bg-accent-hover transition-colors font-body">
               {passForm ? "Cancel" : "+ Add"}
             </button>
           </div>
 
           {passForm && (
-            <form onSubmit={handleAddPass} className="mb-4 p-3 bg-[#F8F6F2] rounded space-y-2">
-              <input type="text" placeholder="Passcode (4-9 digits)" value={newPass} onChange={(e) => setNewPass(e.target.value.replace(/\D/g, ""))} maxLength={9} minLength={4} required className="w-full px-3 py-2 rounded bg-white border border-[#E5E7EB] text-[#1F2937] text-sm focus:outline-none focus:border-[#3B82F6]" />
-              <select value={passType} onChange={(e) => setPassType(Number(e.target.value))} className="w-full px-3 py-2 rounded bg-white border border-[#E5E7EB] text-[#1F2937] text-sm focus:outline-none focus:border-[#3B82F6]">
+            <form onSubmit={handleAddPass} className="mb-4 p-3 bg-alt rounded space-y-2">
+              <input type="text" placeholder="Passcode (4-9 digits)" value={newPass} onChange={(e) => setNewPass(e.target.value.replace(/\D/g, ""))} maxLength={9} minLength={4} required className="w-full px-3 py-2 rounded bg-card border border-border-card text-foreground text-sm focus:outline-none focus:border-focus-ring" />
+              <select value={passType} onChange={(e) => setPassType(Number(e.target.value))} className="w-full px-3 py-2 rounded bg-card border border-border-card text-foreground text-sm focus:outline-none focus:border-focus-ring">
                 <option value={1}>Permanent</option>
                 <option value={2}>Timed</option>
                 <option value={3}>Cyclic</option>
               </select>
-              <button type="submit" className="w-full py-1.5 rounded bg-[#183B6B] text-white text-sm hover:bg-[#2A5CA5] font-body">Add Passcode</button>
+              <button type="submit" className="w-full py-1.5 rounded bg-accent text-white text-sm hover:bg-accent-hover font-body">Add Passcode</button>
             </form>
           )}
 
           {passcodes.length === 0 ? (
-            <p className="text-[#9CA3AF] text-sm text-center py-4 font-body">No passcodes</p>
+            <p className="text-text-muted text-sm text-center py-4 font-body">No passcodes</p>
           ) : (
             <div className="space-y-2 max-h-64 overflow-y-auto">
               {passcodes.map((p) => (
-                <div key={p.passcodeId} className="flex items-center justify-between bg-[#F8F6F2] rounded px-3 py-2">
+                <div key={p.passcodeId} className="flex items-center justify-between bg-alt rounded px-3 py-2">
                   <div>
-                    <span className="text-[#1F2937] font-mono text-sm">{p.passcode}</span>
-                    <span className="text-[#9CA3AF] text-xs ml-2 font-body">
+                    <span className="text-foreground font-mono text-sm">{p.passcode}</span>
+                    <span className="text-text-muted text-xs ml-2 font-body">
                       {p.type === 1 ? "Permanent" : p.type === 2 ? "Timed" : p.type === 3 ? "Cyclic" : "Other"}
                     </span>
                   </div>
-                  <button onClick={() => handleDelPass(p.passcodeId)} className="text-[#EF4444] hover:text-red-700 text-xs font-body">Delete</button>
+                  <button onClick={() => handleDelPass(p.passcodeId)} className="text-error hover:text-error text-xs font-body">Delete</button>
                 </div>
               ))}
             </div>
@@ -355,33 +355,33 @@ export default function LockDetailPage() {
         </div>
 
         {/* IC Cards */}
-        <div className="bg-white border border-[#E5E7EB] rounded-lg p-4 shadow-card">
+        <div className="card-compact bg-card border border-border-card rounded-lg p-4 shadow-card">
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-lg font-heading font-semibold text-[#183B6B]">IC Cards</h2>
-            <button onClick={() => { setIcForm(!icForm); setPassForm(false); setFpForm(false); }} className="px-3 py-1 rounded bg-[#183B6B] text-white text-sm hover:bg-[#2A5CA5] transition-colors font-body">
+            <h2 className="text-lg font-heading font-semibold text-accent">IC Cards</h2>
+            <button onClick={() => { setIcForm(!icForm); setPassForm(false); setFpForm(false); }} className="px-3 py-1 rounded bg-accent text-white text-sm hover:bg-accent-hover transition-colors font-body">
               {icForm ? "Cancel" : "+ Add"}
             </button>
           </div>
 
           {icForm && (
-            <form onSubmit={handleAddIc} className="mb-4 p-3 bg-[#F8F6F2] rounded space-y-2">
-              <input type="text" placeholder="Card Number" value={icNumber} onChange={(e) => setIcNumber(e.target.value)} required className="w-full px-3 py-2 rounded bg-white border border-[#E5E7EB] text-[#1F2937] text-sm focus:outline-none focus:border-[#3B82F6]" />
-              <input type="text" placeholder="Card Name" value={icName} onChange={(e) => setIcName(e.target.value)} required className="w-full px-3 py-2 rounded bg-white border border-[#E5E7EB] text-[#1F2937] text-sm focus:outline-none focus:border-[#3B82F6]" />
-              <button type="submit" className="w-full py-1.5 rounded bg-[#183B6B] text-white text-sm hover:bg-[#2A5CA5] font-body">Add IC Card</button>
+            <form onSubmit={handleAddIc} className="mb-4 p-3 bg-alt rounded space-y-2">
+              <input type="text" placeholder="Card Number" value={icNumber} onChange={(e) => setIcNumber(e.target.value)} required className="w-full px-3 py-2 rounded bg-card border border-border-card text-foreground text-sm focus:outline-none focus:border-focus-ring" />
+              <input type="text" placeholder="Card Name" value={icName} onChange={(e) => setIcName(e.target.value)} required className="w-full px-3 py-2 rounded bg-card border border-border-card text-foreground text-sm focus:outline-none focus:border-focus-ring" />
+              <button type="submit" className="w-full py-1.5 rounded bg-accent text-white text-sm hover:bg-accent-hover font-body">Add IC Card</button>
             </form>
           )}
 
           {icCards.length === 0 ? (
-            <p className="text-[#9CA3AF] text-sm text-center py-4 font-body">No IC cards</p>
+            <p className="text-text-muted text-sm text-center py-4 font-body">No IC cards</p>
           ) : (
             <div className="space-y-2 max-h-64 overflow-y-auto">
               {icCards.map((c: { [key: string]: unknown }, i: number) => (
-                <div key={i} className="flex items-center justify-between bg-[#F8F6F2] rounded px-3 py-2">
+                <div key={i} className="flex items-center justify-between bg-alt rounded px-3 py-2">
                   <div>
-                    <p className="text-[#1F2937] font-mono text-sm">{c.cardNumber as string}</p>
-                    <p className="text-[#9CA3AF] text-xs font-body">{c.cardName as string}</p>
+                    <p className="text-foreground font-mono text-sm">{c.cardNumber as string}</p>
+                    <p className="text-text-muted text-xs font-body">{c.cardName as string}</p>
                   </div>
-                  <button onClick={() => handleDelIc(c.cardId as number)} className="text-[#EF4444] hover:text-red-700 text-xs font-body">Delete</button>
+                  <button onClick={() => handleDelIc(c.cardId as number)} className="text-error hover:text-error text-xs font-body">Delete</button>
                 </div>
               ))}
             </div>
@@ -389,33 +389,33 @@ export default function LockDetailPage() {
         </div>
 
         {/* Fingerprints */}
-        <div className="bg-white border border-[#E5E7EB] rounded-lg p-4 shadow-card">
+        <div className="card-compact bg-card border border-border-card rounded-lg p-4 shadow-card">
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-lg font-heading font-semibold text-[#183B6B]">Fingerprints</h2>
-            <button onClick={() => { setFpForm(!fpForm); setPassForm(false); setIcForm(false); }} className="px-3 py-1 rounded bg-[#183B6B] text-white text-sm hover:bg-[#2A5CA5] transition-colors font-body">
+            <h2 className="text-lg font-heading font-semibold text-accent">Fingerprints</h2>
+            <button onClick={() => { setFpForm(!fpForm); setPassForm(false); setIcForm(false); }} className="px-3 py-1 rounded bg-accent text-white text-sm hover:bg-accent-hover transition-colors font-body">
               {fpForm ? "Cancel" : "+ Add"}
             </button>
           </div>
 
           {fpForm && (
-            <form onSubmit={handleAddFp} className="mb-4 p-3 bg-[#F8F6F2] rounded space-y-2">
-              <input type="text" placeholder="Fingerprint Number" value={fpNumber} onChange={(e) => setFpNumber(e.target.value)} required className="w-full px-3 py-2 rounded bg-white border border-[#E5E7EB] text-[#1F2937] text-sm focus:outline-none focus:border-[#3B82F6]" />
-              <input type="text" placeholder="Fingerprint Name" value={fpName} onChange={(e) => setFpName(e.target.value)} required className="w-full px-3 py-2 rounded bg-white border border-[#E5E7EB] text-[#1F2937] text-sm focus:outline-none focus:border-[#3B82F6]" />
-              <button type="submit" className="w-full py-1.5 rounded bg-[#183B6B] text-white text-sm hover:bg-[#2A5CA5] font-body">Add Fingerprint</button>
+            <form onSubmit={handleAddFp} className="mb-4 p-3 bg-alt rounded space-y-2">
+              <input type="text" placeholder="Fingerprint Number" value={fpNumber} onChange={(e) => setFpNumber(e.target.value)} required className="w-full px-3 py-2 rounded bg-card border border-border-card text-foreground text-sm focus:outline-none focus:border-focus-ring" />
+              <input type="text" placeholder="Fingerprint Name" value={fpName} onChange={(e) => setFpName(e.target.value)} required className="w-full px-3 py-2 rounded bg-card border border-border-card text-foreground text-sm focus:outline-none focus:border-focus-ring" />
+              <button type="submit" className="w-full py-1.5 rounded bg-accent text-white text-sm hover:bg-accent-hover font-body">Add Fingerprint</button>
             </form>
           )}
 
           {fingerprints.length === 0 ? (
-            <p className="text-[#9CA3AF] text-sm text-center py-4 font-body">No fingerprints</p>
+            <p className="text-text-muted text-sm text-center py-4 font-body">No fingerprints</p>
           ) : (
             <div className="space-y-2 max-h-64 overflow-y-auto">
               {fingerprints.map((fp: { [key: string]: unknown }, i: number) => (
-                <div key={i} className="flex items-center justify-between bg-[#F8F6F2] rounded px-3 py-2">
+                <div key={i} className="flex items-center justify-between bg-alt rounded px-3 py-2">
                   <div>
-                    <p className="text-[#1F2937] text-sm font-body">{fp.fingerprintName as string || `FP #${fp.fingerprintId}`}</p>
-                    <p className="text-[#9CA3AF] text-xs font-body">#{fp.fingerprintNumber as string}</p>
+                    <p className="text-foreground text-sm font-body">{fp.fingerprintName as string || `FP #${fp.fingerprintId}`}</p>
+                    <p className="text-text-muted text-xs font-body">#{fp.fingerprintNumber as string}</p>
                   </div>
-                  <button onClick={() => handleDelFp(fp.fingerprintId as number)} className="text-[#EF4444] hover:text-red-700 text-xs font-body">Delete</button>
+                  <button onClick={() => handleDelFp(fp.fingerprintId as number)} className="text-error hover:text-error text-xs font-body">Delete</button>
                 </div>
               ))}
             </div>
@@ -423,22 +423,22 @@ export default function LockDetailPage() {
         </div>
 
         {/* Gateways */}
-        <div className="bg-white border border-[#E5E7EB] rounded-lg p-4 shadow-card">
-          <h2 className="text-lg font-heading font-semibold text-[#183B6B] mb-3">Gateways</h2>
+        <div className="card-compact bg-card border border-border-card rounded-lg p-4 shadow-card">
+          <h2 className="text-lg font-heading font-semibold text-accent mb-3">Gateways</h2>
           {gwById.length === 0 ? (
-            <p className="text-[#9CA3AF] text-sm text-center py-4 font-body">No gateways</p>
+            <p className="text-text-muted text-sm text-center py-4 font-body">No gateways</p>
           ) : (
             <div className="space-y-2 max-h-64 overflow-y-auto">
               {gateways.map((g: { [key: string]: unknown }, i: number) => (
-                <div key={i} className="bg-[#F8F6F2] rounded px-3 py-2 flex items-center justify-between">
+                <div key={i} className="bg-alt rounded px-3 py-2 flex items-center justify-between">
                   <div>
-                    <p className="text-[#1F2937] text-sm font-medium font-body">{g.gatewayName as string || `Gateway #${g.gatewayId}`}</p>
-                    <p className="text-[#9CA3AF] text-xs font-body">MAC: {g.gatewayMac as string} · {g.lockNum as number} lock(s)</p>
+                    <p className="text-foreground text-sm font-medium font-body">{g.gatewayName as string || `Gateway #${g.gatewayId}`}</p>
+                    <p className="text-text-muted text-xs font-body">MAC: {g.gatewayMac as string} · {g.lockNum as number} lock(s)</p>
                   </div>
                   <span className={`text-xs px-2 py-0.5 rounded-full font-body ${
                     Number(g.isOnline)
-                      ? "text-[#22C55E] bg-green-50 border border-green-200"
-                      : "text-[#EF4444] bg-red-50 border border-red-200"
+                      ? "text-success bg-success-soft border border-green-200"
+                      : "text-error bg-error-soft border border-red-200"
                   }`}>
                     {Number(g.isOnline) ? "Online" : "Offline"}
                   </span>
@@ -450,26 +450,26 @@ export default function LockDetailPage() {
       </div>
 
       {/* Unlock Records */}
-      <div className="bg-white border border-[#E5E7EB] rounded-lg p-4 mt-4 sm:mt-6 shadow-card">
+      <div className="card-compact bg-card border border-border-card rounded-lg p-4 mt-4 sm:mt-6 shadow-card">
       <button onClick={() => setRecordsExpanded(!recordsExpanded)} className="flex items-center justify-between w-full">
-        <h2 className="text-base sm:text-lg font-heading font-semibold text-[#183B6B]">Unlock Records ({recRes?.total ?? 0})</h2>
-          <span className="text-[#9CA3AF]">{recordsExpanded ? "\u25B2" : "\u25BC"}</span>
+        <h2 className="text-base sm:text-lg font-heading font-semibold text-accent">Unlock Records ({recRes?.total ?? 0})</h2>
+          <span className="text-text-muted">{recordsExpanded ? "\u25B2" : "\u25BC"}</span>
         </button>
         {recordsExpanded && (
           <div className="mt-3 space-y-1 max-h-96 overflow-y-auto">
             {records.length === 0 ? (
-              <p className="text-[#9CA3AF] text-sm text-center py-4 font-body">No records</p>
+              <p className="text-text-muted text-sm text-center py-4 font-body">No records</p>
             ) : (
               records.map((r) => (
-                <div key={r.recordId} className="flex items-center justify-between bg-[#F8F6F2] rounded px-3 py-2 text-sm">
+                <div key={r.recordId} className="flex items-center justify-between bg-alt rounded px-3 py-2 text-sm">
                   <div className="flex items-center gap-3">
-                    <span className={r.success ? "text-[#22C55E]" : "text-[#EF4444]"}>
+                    <span className={r.success ? "text-success" : "text-error"}>
                       {r.success ? "Success" : "Failed"}
                     </span>
-                    <span className="text-[#6B7280] font-body">{unlockTypeLabel[r.unlockType] || `Type ${r.unlockType}`}</span>
-                    <span className="text-[#9CA3AF] text-xs font-body">{new Date(r.unlockTime).toLocaleString()}</span>
+                    <span className="text-text-secondary font-body">{unlockTypeLabel[r.unlockType] || `Type ${r.unlockType}`}</span>
+                    <span className="text-text-muted text-xs font-body">{new Date(r.unlockTime).toLocaleString()}</span>
                   </div>
-                  <span className="text-[#9CA3AF] text-xs font-body">keyId: {r.keyId}</span>
+                  <span className="text-text-muted text-xs font-body">keyId: {r.keyId}</span>
                 </div>
               ))
             )}
@@ -478,17 +478,17 @@ export default function LockDetailPage() {
       </div>
 
       {/* Lock Config */}
-      <div className="bg-white border border-[#E5E7EB] rounded-lg p-4 mt-4 sm:mt-6 shadow-card">
+      <div className="card-compact bg-card border border-border-card rounded-lg p-4 mt-4 sm:mt-6 shadow-card">
         <button onClick={() => setConfigExpanded(!configExpanded)} className="flex items-center justify-between w-full">
-          <h2 className="text-base sm:text-lg font-heading font-semibold text-[#183B6B]">Lock Config</h2>
-          <span className="text-[#9CA3AF]">{configExpanded ? "\u25B2" : "\u25BC"}</span>
+          <h2 className="text-base sm:text-lg font-heading font-semibold text-accent">Lock Config</h2>
+          <span className="text-text-muted">{configExpanded ? "\u25B2" : "\u25BC"}</span>
         </button>
         {configExpanded && configRes?.data && (
           <div className="mt-3 space-y-1">
             {Object.entries(configRes.data).filter(([k]) => k !== "errcode").map(([key, val]) => (
-              <div key={key} className="flex items-center justify-between bg-[#F8F6F2] rounded px-3 py-1.5 text-sm">
-                <span className="text-[#9CA3AF] font-body">{key}</span>
-                <span className="text-[#1F2937] font-body">{String(val)}</span>
+              <div key={key} className="flex items-center justify-between bg-alt rounded px-3 py-1.5 text-sm">
+                <span className="text-text-muted font-body">{key}</span>
+                <span className="text-foreground font-body">{String(val)}</span>
               </div>
             ))}
           </div>

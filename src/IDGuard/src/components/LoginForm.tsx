@@ -55,7 +55,7 @@ export default function LoginForm() {
             />
           </motion.div>
           <motion.p
-            className="text-[#6B7280] text-sm font-body"
+            className="text-text-secondary text-sm font-body"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.5, duration: 0.4 }}
@@ -68,10 +68,10 @@ export default function LoginForm() {
       <form onSubmit={handleSubmit} className="space-y-4">
         <FadeInView delay={0.2} direction="up">
           <motion.div
-            className="bg-white rounded-xl p-1 shadow-sm border border-[#E5E7EB]"
+            className="bg-card rounded-xl p-1 shadow-sm border border-border-card"
             whileFocus={{ boxShadow: "0 0 0 3px rgba(59, 130, 246, 0.15)" }}
           >
-            <label htmlFor="username" className="block text-xs text-[#6B7280] px-3 pt-2 font-body">
+            <label htmlFor="username" className="block text-xs text-text-secondary px-3 pt-2 font-body">
               TTLock Username / Email
             </label>
             <motion.input
@@ -79,7 +79,7 @@ export default function LoginForm() {
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              className="w-full px-3 py-2 bg-transparent text-[#1F2937] text-sm placeholder-[#9CA3AF] focus:outline-none font-body"
+              className="w-full px-3 py-2 bg-transparent text-foreground text-sm placeholder-text-muted focus:outline-none font-body"
               placeholder="your@email.com"
               required
               whileFocus={{ scale: 1.01 }}
@@ -90,10 +90,10 @@ export default function LoginForm() {
 
         <FadeInView delay={0.3} direction="up">
           <motion.div
-            className="bg-white rounded-xl p-1 shadow-sm border border-[#E5E7EB]"
+            className="bg-card rounded-xl p-1 shadow-sm border border-border-card"
             whileFocus={{ boxShadow: "0 0 0 3px rgba(59, 130, 246, 0.15)" }}
           >
-            <label htmlFor="password" className="block text-xs text-[#6B7280] px-3 pt-2 font-body">
+            <label htmlFor="password" className="block text-xs text-text-secondary px-3 pt-2 font-body">
               Password
             </label>
             <motion.input
@@ -101,7 +101,7 @@ export default function LoginForm() {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-3 py-2 bg-transparent text-[#1F2937] text-sm placeholder-[#9CA3AF] focus:outline-none font-body"
+              className="w-full px-3 py-2 bg-transparent text-foreground text-sm placeholder-text-muted focus:outline-none font-body"
               placeholder="••••••••"
               required
               whileFocus={{ scale: 1.01 }}
@@ -112,7 +112,7 @@ export default function LoginForm() {
 
         {error && (
           <motion.div
-            className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-600"
+            className="bg-error-soft border border-red-200 rounded-xl px-4 py-3 text-sm text-red-600"
             initial={{ opacity: 0, x: -10 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ type: "spring", stiffness: 300 }}
@@ -126,7 +126,7 @@ export default function LoginForm() {
             <motion.button
               type="submit"
               disabled={loading}
-              className="w-full py-3 rounded-xl bg-[#183B6B] text-white text-sm font-medium hover:bg-[#2A5CA5] disabled:opacity-50 disabled:cursor-not-allowed transition-all font-body shadow-md"
+              className="w-full py-3 rounded-xl bg-accent text-white text-sm font-medium hover:bg-accent-hover disabled:opacity-50 disabled:cursor-not-allowed transition-all font-body shadow-md"
               whileHover={{ boxShadow: "0 0 30px rgba(59, 130, 246, 0.3)" }}
               whileTap={{ scale: 0.98 }}
             >
@@ -154,15 +154,15 @@ export default function LoginForm() {
         animate={{ opacity: 1 }}
         transition={{ delay: 1, duration: 0.5 }}
       >
-        <div className="flex items-center justify-center gap-2 text-xs text-[#9CA3AF] font-body">
+        <div className="flex items-center justify-center gap-2 text-xs text-text-muted font-body">
           <motion.span
-            className="inline-block w-8 h-px bg-[#E5E7EB]"
+            className="inline-block w-8 h-px bg-border-card"
             animate={{ width: ["8px", "32px", "8px"] }}
             transition={{ duration: 3, repeat: Infinity }}
           />
           Secure Connection
           <motion.span
-            className="inline-block w-8 h-px bg-[#E5E7EB]"
+            className="inline-block w-8 h-px bg-border-card"
             animate={{ width: ["8px", "32px", "8px"] }}
             transition={{ duration: 3, repeat: Infinity }}
           />

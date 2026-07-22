@@ -9,7 +9,7 @@ interface TokenStore {
   expiresAt: number;
 }
 
-let tokenStore: TokenStore | null = null;
+const tokenStore: TokenStore | null = null;
 
 function getClientId() {
   return process.env.TTLOCK_CLIENT_ID!;

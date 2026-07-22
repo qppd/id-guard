@@ -5,6 +5,7 @@ import { useAuth, logout } from "@/lib/hooks/useAuth";
 import { useRouter, usePathname } from "next/navigation";
 import Image from "next/image";
 import { useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 
 export default function Navbar() {
   const { isAuthenticated } = useAuth();
@@ -27,9 +28,9 @@ export default function Navbar() {
   ];
 
   return (
-    <nav className="bg-[#183B6B] border-b border-[#2A5CA5]">
+    <nav className="bg-accent border-b border-accent-hover">
       <div className="container-page h-14 sm:h-16 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-2 shrink-0">
+        <Link href="/" className="flex items-center gap-2 shrink-0" aria-label="IDGuard home">
           <Image
             src="/logos/id_guard_logo.png"
             alt="IDGuard"
@@ -50,8 +51,8 @@ export default function Navbar() {
                   href={item.href}
                   className={`text-sm px-3 py-1.5 rounded transition-colors font-body ${
                     isActive(item.href)
-                      ? "bg-[#3B82F6] text-white"
-                      : "text-white/80 hover:bg-[#DCEEFF] hover:text-[#183B6B]"
+                      ? "bg-accent text-white"
+                      : "text-white/80 hover:bg-sky hover:text-accent"
                   }`}
                 >
                   {item.label}
@@ -59,7 +60,7 @@ export default function Navbar() {
               ))}
               <button
                 onClick={handleLogout}
-                className="text-sm ml-2 px-3 py-1.5 rounded text-white/80 border border-white/30 hover:bg-white/10 transition-colors font-body"
+                className="text-sm ml-2 px-3 py-1.5 rounded text-white/80 border border-white/30 hover:bg-card/10 transition-colors font-body"
               >
                 Logout
               </button>
@@ -68,42 +69,55 @@ export default function Navbar() {
             {/* Mobile hamburger */}
             <button
               onClick={() => setMenuOpen(!menuOpen)}
-              className="sm:hidden flex flex-col gap-1 p-2 rounded hover:bg-white/10 transition-colors"
+              className="sm:hidden flex flex-col gap-1 p-2 rounded hover:bg-card/10 transition-colors"
               aria-label="Toggle menu"
+              aria-expanded={menuOpen}
+              aria-controls="mobile-menu"
             >
-              <span className={`block w-5 h-0.5 bg-white transition-transform ${menuOpen ? "rotate-45 translate-y-1.5" : ""}`} />
-              <span className={`block w-5 h-0.5 bg-white transition-opacity ${menuOpen ? "opacity-0" : ""}`} />
-              <span className={`block w-5 h-0.5 bg-white transition-transform ${menuOpen ? "-rotate-45 -translate-y-1.5" : ""}`} />
+              <span className={`block w-5 h-0.5 bg-card transition-transform ${menuOpen ? "rotate-45 translate-y-1.5" : ""}`} />
+              <span className={`block w-5 h-0.5 bg-card transition-opacity ${menuOpen ? "opacity-0" : ""}`} />
+              <span className={`block w-5 h-0.5 bg-card transition-transform ${menuOpen ? "-rotate-45 -translate-y-1.5" : ""}`} />
             </button>
           </>
         )}
       </div>
 
-      {/* Mobile dropdown */}
-      {isAuthenticated && menuOpen && (
-        <div className="sm:hidden bg-[#1E3A5F] border-t border-[#2A5CA5] px-4 py-3 space-y-2">
-          {navItems.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              onClick={() => setMenuOpen(false)}
-              className={`block text-sm px-3 py-2 rounded transition-colors font-body ${
-                isActive(item.href)
-                  ? "bg-[#3B82F6] text-white"
-                  : "text-white/80 hover:bg-white/10"
-              }`}
-            >
-              {item.label}
-            </Link>
-          ))}
-          <button
-            onClick={() => { handleLogout(); setMenuOpen(false); }}
-            className="w-full text-left text-sm px-3 py-2 rounded text-white/80 border border-white/30 hover:bg-white/10 transition-colors font-body"
+      {/* Mobile dropdown with animation */}
+      <AnimatePresence>
+        {isAuthenticated && menuOpen && (
+          <motion.div
+            id="mobile-menu"
+            role="navigation"
+            aria-label="Mobile navigation"
+            className="sm:hidden bg-accent-dark border-t border-accent-hover px-4 py-3 space-y-2 overflow-hidden"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.25, ease: "easeOut" }}
           >
-            Logout
-          </button>
-        </div>
-      )}
+            {navItems.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={() => setMenuOpen(false)}
+                className={`block text-sm px-3 py-2 rounded transition-colors font-body ${
+                  isActive(item.href)
+                    ? "bg-accent text-white"
+                    : "text-white/80 hover:bg-card/10"
+                }`}
+              >
+                {item.label}
+              </Link>
+            ))}
+            <button
+              onClick={() => { handleLogout(); setMenuOpen(false); }}
+              className="w-full text-left text-sm px-3 py-2 rounded text-white/80 border border-white/30 hover:bg-card/10 transition-colors font-body"
+            >
+              Logout
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </nav>
   );
 }

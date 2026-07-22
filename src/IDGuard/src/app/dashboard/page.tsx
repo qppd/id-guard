@@ -48,25 +48,25 @@ export default function DashboardPage() {
       {/* Summary cards */}
       {settings.showSummary && (
         <div className="grid-summary mb-4 sm:mb-6">
-          <div className="bg-white border border-[#E5E7EB] rounded-lg p-3 sm:p-4 text-center shadow-card">
-            <p className="text-xl sm:text-2xl font-bold text-[#183B6B] font-heading">{locks.length}</p>
-            <p className="text-xs text-[#9CA3AF] mt-1 font-body">Locks</p>
+          <div className="card-compact bg-card border border-border-card rounded-lg p-3 sm:p-4 text-center shadow-card">
+            <p className="text-xl sm:text-2xl font-bold text-accent font-heading">{locks.length}</p>
+            <p className="text-xs text-text-muted mt-1 font-body">Locks</p>
           </div>
-          <div className="bg-white border border-[#E5E7EB] rounded-lg p-3 sm:p-4 text-center shadow-card">
-            <p className="text-xl sm:text-2xl font-bold text-[#183B6B] font-heading">{gateways.length}</p>
-            <p className="text-xs text-[#9CA3AF] mt-1 font-body">Gateways</p>
+          <div className="card-compact bg-card border border-border-card rounded-lg p-3 sm:p-4 text-center shadow-card">
+            <p className="text-xl sm:text-2xl font-bold text-accent font-heading">{gateways.length}</p>
+            <p className="text-xs text-text-muted mt-1 font-body">Gateways</p>
           </div>
-          <div className="bg-white border border-[#E5E7EB] rounded-lg p-3 sm:p-4 text-center shadow-card">
-            <p className="text-xl sm:text-2xl font-bold text-[#183B6B] font-heading">{onlineGateways.length}</p>
-            <p className="text-xs text-[#9CA3AF] mt-1 font-body">Online</p>
+          <div className="card-compact bg-card border border-border-card rounded-lg p-3 sm:p-4 text-center shadow-card">
+            <p className="text-xl sm:text-2xl font-bold text-accent font-heading">{onlineGateways.length}</p>
+            <p className="text-xs text-text-muted mt-1 font-body">Online</p>
           </div>
         </div>
       )}
 
       <div className="flex items-center justify-between mb-4 sm:mb-6">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-[#183B6B] font-heading">Dashboard</h1>
-          <p className="text-xs sm:text-sm text-[#6B7280] mt-1 font-body">
+          <h1 className="text-xl sm:text-2xl font-bold text-accent font-heading">Dashboard</h1>
+          <p className="text-xs sm:text-sm text-text-secondary mt-1 font-body">
             {locks.length} lock{locks.length !== 1 ? "s" : ""} on your account
           </p>
         </div>
@@ -79,15 +79,15 @@ export default function DashboardPage() {
       )}
 
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-sm text-red-600 mb-6">
+        <div className="bg-error-soft border border-red-200 rounded-lg p-4 text-sm text-red-600 mb-6">
           {error}
         </div>
       )}
 
       {!isLoading && !error && locks.length === 0 && (
         <div className="text-center py-12">
-          <p className="text-[#6B7280] text-lg mb-2 font-body">No locks found</p>
-          <p className="text-[#9CA3AF] text-sm font-body">
+          <p className="text-text-secondary text-lg mb-2 font-body">No locks found</p>
+          <p className="text-text-muted text-sm font-body">
             Add a lock through the TTLock mobile app first, then refresh.
           </p>
         </div>

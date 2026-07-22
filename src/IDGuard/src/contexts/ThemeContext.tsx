@@ -18,6 +18,8 @@ export interface ThemeSettings {
   cardDensity: CardDensity;
   showSummary: boolean;
   refreshInterval: number;
+  enable3D: boolean;
+  enableAnimations: boolean;
 }
 
 const STORAGE_KEY = "ttlock-settings";
@@ -31,6 +33,8 @@ const defaultSettings: ThemeSettings = {
   cardDensity: "default",
   showSummary: true,
   refreshInterval: 60,
+  enable3D: true,
+  enableAnimations: true,
 };
 
 interface ThemeContextValue {

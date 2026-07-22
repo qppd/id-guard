@@ -38,6 +38,10 @@
   /* Focus ring — Royal Blue */
   --focus-ring: #3B82F6;
 
+  /* Accent derivatives */
+  --accent-light: #60A5FA;
+  --accent-dark: #1E3A5F;
+
   /* Status colors */
   --status-success: #22C55E;
   --status-warning: #F59E0B;
@@ -61,6 +65,10 @@
   --link-hover: #93C5FD;
   --accent-bg-color: #1E3A5F;
   --focus-ring: #60A5FA;
+
+  /* Dark-mode accent derivatives */
+  --accent-light: #93C5FD;
+  --accent-dark: #0F1A2E;
 }
 
 /* ---- Derived accent vars (dynamic, based on hue/sat/lgt) ---- */
@@ -78,6 +86,14 @@
 [data-accent="orange"] { --accent-hue: 24;  --accent-sat: 95%;  --accent-lgt: 53%; }
 [data-accent="teal"]   { --accent-hue: 173; --accent-sat: 80%;  --accent-lgt: 40%; }
 [data-accent="pink"]   { --accent-hue: 330; --accent-sat: 81%;  --accent-lgt: 60%; }
+
+/* ---- Dark-mode accent lightness boosts (for visibility on dark bg) ---- */
+.dark[data-accent="blue"]   { --accent-lgt: 55%; }
+.dark[data-accent="green"]  { --accent-lgt: 55%; }
+.dark[data-accent="purple"] { --accent-lgt: 65%; }
+.dark[data-accent="orange"] { --accent-lgt: 60%; }
+.dark[data-accent="teal"]   { --accent-lgt: 55%; }
+.dark[data-accent="pink"]   { --accent-lgt: 65%; }
 
 /* ---- Card style ---- */
 [data-card-style="glass"] {
@@ -155,6 +171,22 @@
 .btn-secondary:hover {
   background-color: var(--accent-bg-color);
 }
+
+/* Status color utilities */
+.text-success { color: var(--status-success); }
+.text-warning { color: var(--status-warning); }
+.text-error   { color: var(--status-error); }
+.text-info    { color: var(--status-info); }
+
+.bg-success-soft { background-color: color-mix(in srgb, var(--status-success) 12%, transparent); }
+.bg-warning-soft { background-color: color-mix(in srgb, var(--status-warning) 12%, transparent); }
+.bg-error-soft   { background-color: color-mix(in srgb, var(--status-error) 12%, transparent); }
+.bg-info-soft    { background-color: color-mix(in srgb, var(--status-info) 12%, transparent); }
+
+.border-success-soft { border-color: color-mix(in srgb, var(--status-success) 30%, transparent); }
+.border-warning-soft { border-color: color-mix(in srgb, var(--status-warning) 30%, transparent); }
+.border-error-soft   { border-color: color-mix(in srgb, var(--status-error) 30%, transparent); }
+.border-info-soft    { border-color: color-mix(in srgb, var(--status-info) 30%, transparent); }
 
 /* Typography */
 .font-heading { font-family: var(--font-poppins), sans-serif; }
@@ -325,4 +357,60 @@ h1, h2, h3, h4, h5, h6 {
 @media (max-width: 480px) {
   .text-responsive-xl { font-size: 1.5rem !important; }
   .text-responsive-2xl { font-size: 1.75rem !important; }
+
+  /* Accessibility: underline all links on touch devices */
+  a { text-decoration: underline; text-decoration-color: transparent; }
+  a:hover, a:focus { text-decoration-color: currentColor; }
+}
+
+/* ============================================================
+   ACCESSIBILITY
+   ============================================================ */
+
+/* Focus ring for keyboard navigation */
+:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+/* Respect system reduced-motion preference */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Input focus utility (for login form) */
+.input-focus {
+  border-color: var(--focus-ring);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--focus-ring) 15%, transparent);
+}
+
+/* Skip-to-content link */
+.skip-link {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.5rem;
+  z-index: 9999;
+  padding: 0.5rem 1rem;
+  background: var(--accent);
+  color: white;
+  border-radius: 0.375rem;
+  transform: translateY(-200%);
+  transition: transform 0.15s ease;
+}
+.skip-link:focus {
+  transform: translateY(0);
+}
+
+/* ============================================================
+   PRINT STYLES
+   ============================================================ */
+@media print {
+  .no-print, button, .animate-spin { display: none !important; }
+  body { background: white !important; color: black !important; }
+  .bg-card { background: white !important; border: 1px solid #ccc !important; }
 }
