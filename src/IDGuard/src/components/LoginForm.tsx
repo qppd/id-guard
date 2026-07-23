@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { HoverScale, FadeInView } from "@/components/Parallax";
+import Link from "next/link";
 
 export default function LoginForm() {
   const [username, setUsername] = useState("");
@@ -120,6 +121,17 @@ export default function LoginForm() {
             {error}
           </motion.div>
         )}
+
+        <FadeInView delay={0.4} direction="up">
+          <div className="text-right">
+            <Link
+              href="/reset-password"
+              className="text-xs text-accent hover:underline font-body transition-colors"
+            >
+              Forgot password? (cloud API accounts only)
+            </Link>
+          </div>
+        </FadeInView>
 
         <FadeInView delay={0.45} direction="up">
           <HoverScale scale={1.02}>

@@ -405,3 +405,27 @@ export async function registerUser(
   if (!data.username) throw new Error(data.errmsg || "User registration failed");
   return { username: data.username };
 }
+
+// Reset password — only works for accounts registered via /v3/user/register
+export async function resetPassword(
+  username: string,
+  newPassword: string
+): Promise<void> {
+  const md5 = md5hash(newPassword);
+  const res = await fetch(`${BASE}/v3/user/resetPassword`, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      clientId: getClientId(),
+      clientSecret: getClientSecret(),
+      username,
+      password: md5,
+      date: makeDate(),
+    }),
+  });
+
+  const data = await res.json();
+  if (data.errcode !== 0) {
+    throw new Error(data.errmsg || "Password reset failed");
+  }
+}
