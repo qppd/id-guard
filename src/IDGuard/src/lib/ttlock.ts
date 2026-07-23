@@ -101,40 +101,6 @@ async function apiPost<T>(
   return data;
 }
 
-// GET helper — some TTLock endpoints use GET
-async function apiGet<T>(
-  path: string,
-  params: { [key: string]: string },
-  accessToken: string
-): Promise<T> {
-  const queryParams = new URLSearchParams({
-    clientId: getClientId(),
-    accessToken,
-    date: makeDate(),
-    ...params,
-  });
-
-  const res = await fetch(`${BASE}${path}?${queryParams}`, {
-    method: "GET",
-  });
-
-  if (res.status === 401 || res.status === 403) {
-    throw new Error(`TTLock token error (HTTP ${res.status}): token expired or invalid`);
-  }
-
-  const text = await res.text();
-  let data;
-  try {
-    data = JSON.parse(text);
-  } catch {
-    throw new Error(`TTLock API returned non-JSON response from ${path}: ${text.slice(0, 100)}`);
-  }
-  if (data.errcode && data.errcode !== 0) {
-    throw new Error(`TTLock API error ${data.errcode}: ${data.errmsg || "Unknown"}`);
-  }
-  return data;
-}
-
 // ===== Auth =====
 
 // User registration (creates a TTLock account programmatically)
@@ -187,7 +153,7 @@ export async function resetPassword(
 // ===== Lock Endpoints =====
 
 export async function listLocks(accessToken: string, page = 1, size = 20) {
-  return apiGet<{ list: { [key: string]: unknown }[]; total: number; pages?: number; pageNo?: number; pageSize?: number }>(
+  return apiPost<{ list: { [key: string]: unknown }[]; total: number; pages?: number; pageNo?: number; pageSize?: number }>(
     "/v3/lock/list",
     { pageNo: String(page), pageSize: String(size) },
     accessToken
@@ -195,7 +161,7 @@ export async function listLocks(accessToken: string, page = 1, size = 20) {
 }
 
 export async function lockDetail(accessToken: string, lockId: number) {
-  return apiGet<{ [key: string]: unknown }>(
+  return apiPost<{ [key: string]: unknown }>(
     "/v3/lock/detail",
     { lockId: String(lockId) },
     accessToken
@@ -259,7 +225,7 @@ export async function updateLockData(accessToken: string, lockId: number, lockDa
 
 // Get lock battery
 export async function getLockBattery(accessToken: string, lockId: number) {
-  return apiGet<{ electricQuantity: number }>(
+  return apiPost<{ electricQuantity: number }>(
     "/v3/lock/queryElectricQuantity",
     { lockId: String(lockId) },
     accessToken
@@ -277,7 +243,7 @@ export async function uploadLockBattery(accessToken: string, lockId: number, ele
 
 // Get open state of a lock
 export async function getLockOpenState(accessToken: string, lockId: number) {
-  return apiGet<{ state: number }>(
+  return apiPost<{ state: number }>(
     "/v3/lock/queryOpenState",
     { lockId: String(lockId) },
     accessToken
@@ -286,7 +252,7 @@ export async function getLockOpenState(accessToken: string, lockId: number) {
 
 // Get lock time
 export async function getLockTime(accessToken: string, lockId: number) {
-  return apiGet<{ date: number }>(
+  return apiPost<{ date: number }>(
     "/v3/lock/queryDate",
     { lockId: String(lockId) },
     accessToken
@@ -323,7 +289,7 @@ export async function changeAdminPasscode(accessToken: string, lockId: number, p
 // ===== Lock Config (Query/Update Settings) =====
 
 export async function getLockConfig(accessToken: string, lockId: number) {
-  return apiGet<{ [key: string]: unknown }>(
+  return apiPost<{ [key: string]: unknown }>(
     "/v3/lock/querySetting",
     { lockId: String(lockId) },
     accessToken
@@ -341,7 +307,7 @@ export async function setLockConfig(accessToken: string, lockId: number, config:
 // ===== Door Sensor =====
 
 export async function getDoorSensorState(accessToken: string, lockId: number) {
-  return apiGet<{ state: number; electricQuantity?: number }>(
+  return apiPost<{ state: number; electricQuantity?: number }>(
     "/v3/lock/queryOpenState",
     { lockId: String(lockId) },
     accessToken
@@ -406,7 +372,7 @@ export async function configureWorkingMode(
 // ===== Passage Mode =====
 
 export async function getPassageMode(accessToken: string, lockId: number) {
-  return apiGet<{ passageMode: number; cyclicConfig?: string; autoUnlock?: number }>(
+  return apiPost<{ passageMode: number; cyclicConfig?: string; autoUnlock?: number }>(
     "/v3/lock/getPassageModeConfiguration",
     { lockId: String(lockId) },
     accessToken
@@ -438,7 +404,7 @@ export async function configurePassageMode(
 // ===== Passcode Endpoints =====
 
 export async function listPasscodes(accessToken: string, lockId: number, page = 1, size = 50) {
-  return apiGet<{ list: { [key: string]: unknown }[]; pageNo: number; pageSize: number; total: number; pages: number }>(
+  return apiPost<{ list: { [key: string]: unknown }[]; pageNo: number; pageSize: number; total: number; pages: number }>(
     "/v3/lock/listKeyboardPwd",
     { lockId: String(lockId), pageNo: String(page), pageSize: String(size) },
     accessToken
@@ -526,7 +492,7 @@ export async function listRecords(
   };
   if (startDate) params.startDate = String(startDate);
   if (endDate) params.endDate = String(endDate);
-  return apiGet<{ list: { [key: string]: unknown }[]; pageNo: number; pageSize: number; total: number; pages: number }>(
+  return apiPost<{ list: { [key: string]: unknown }[]; pageNo: number; pageSize: number; total: number; pages: number }>(
     "/v3/lockRecord/list",
     params,
     accessToken
@@ -691,7 +657,7 @@ export async function listKeys(accessToken: string, page = 1, size = 100) {
 
 // List eKeys of a specific lock
 export async function listKeysByLock(accessToken: string, lockId: number, page = 1, size = 100) {
-  return apiGet<{ list: { [key: string]: unknown }[]; total: number; pages?: number }>(
+  return apiPost<{ list: { [key: string]: unknown }[]; total: number; pages?: number }>(
     "/v3/lock/listKey",
     { lockId: String(lockId), pageNo: String(page), pageSize: String(size) },
     accessToken
@@ -700,7 +666,7 @@ export async function listKeysByLock(accessToken: string, lockId: number, page =
 
 // Get one eKey
 export async function getOneKey(accessToken: string, lockId: number) {
-  return apiGet<{ keyId: number; lockData: string; lockId: number; userType: string; keyStatus: string; lockName: string; lockAlias: string; lockMac: string }>(
+  return apiPost<{ keyId: number; lockData: string; lockId: number; userType: string; keyStatus: string; lockName: string; lockAlias: string; lockMac: string }>(
     "/v3/key/get",
     { lockId: String(lockId) },
     accessToken
@@ -813,7 +779,7 @@ export async function getKeyUnlockLink(accessToken: string, keyId: number) {
 // ===== Gateway Endpoints =====
 
 export async function listGateways(accessToken: string, page = 1, size = 100) {
-  return apiGet<{ list: { [key: string]: unknown }[]; pageNo: number; pageSize: number; total: number; pages: number }>(
+  return apiPost<{ list: { [key: string]: unknown }[]; pageNo: number; pageSize: number; total: number; pages: number }>(
     "/v3/gateway/list",
     { pageNo: String(page), pageSize: String(size) },
     accessToken
@@ -821,7 +787,7 @@ export async function listGateways(accessToken: string, page = 1, size = 100) {
 }
 
 export async function listGatewaysByLock(accessToken: string, lockId: number) {
-  return apiGet<{ list: { [key: string]: unknown }[] }>(
+  return apiPost<{ list: { [key: string]: unknown }[] }>(
     "/v3/gateway/listByLock",
     { lockId: String(lockId) },
     accessToken
@@ -830,7 +796,7 @@ export async function listGatewaysByLock(accessToken: string, lockId: number) {
 
 // Get gateway detail
 export async function getGatewayDetail(accessToken: string, gatewayId: number) {
-  return apiGet<{ [key: string]: unknown }>(
+  return apiPost<{ [key: string]: unknown }>(
     "/v3/gateway/detail",
     { gatewayId: String(gatewayId) },
     accessToken
@@ -871,7 +837,7 @@ export async function transferGateway(accessToken: string, receiverUsername: str
 
 // List locks by gateway
 export async function listLocksByGateway(accessToken: string, gatewayId: number) {
-  return apiGet<{ list: { [key: string]: unknown }[] }>(
+  return apiPost<{ list: { [key: string]: unknown }[] }>(
     "/v3/gateway/listLock",
     { gatewayId: String(gatewayId) },
     accessToken
@@ -898,7 +864,7 @@ export async function checkGatewayInitStatus(accessToken: string, gatewayNetMac:
 
 // Gateway upgrade check
 export async function checkGatewayUpgrade(accessToken: string, gatewayId: number) {
-  return apiGet<{ needUpgrade: number; firmwareInfo?: string; version?: string }>(
+  return apiPost<{ needUpgrade: number; firmwareInfo?: string; version?: string }>(
     "/v3/gateway/upgradeCheck",
     { gatewayId: String(gatewayId) },
     accessToken
