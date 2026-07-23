@@ -26,11 +26,14 @@ interface LockDetail {
 }
 
 interface Passcode {
-  passcodeId: number;
-  passcode: string;
-  type: number;
+  keyboardPwdId: number;
+  keyboardPwd: string;
+  keyboardPwdType: number;
   startDate?: number;
   endDate?: number;
+  nickName?: string;
+  status?: number;
+  [key: string]: unknown;
 }
 
 interface LockRecord {
@@ -644,14 +647,14 @@ export default function LockDetailPage() {
           ) : (
             <div className="space-y-2 max-h-64 overflow-y-auto">
               {passcodes.map((p) => (
-                <div key={p.passcodeId} className="flex items-center justify-between bg-alt rounded px-3 py-2">
+                <div key={p.keyboardPwdId} className="flex items-center justify-between bg-alt rounded px-3 py-2">
                   <div>
-                    <span className="text-foreground font-mono text-sm">{p.passcode}</span>
+                    <span className="text-foreground font-mono text-sm">{p.keyboardPwd}</span>
                     <span className="text-text-muted text-xs ml-2 font-body">
-                      {p.type === 2 ? "Permanent" : p.type === 3 ? "Period" : p.type === 1 ? "One-time" : `Type ${p.type}`}
+                      {p.keyboardPwdType === 2 ? "Permanent" : p.keyboardPwdType === 3 ? "Period" : p.keyboardPwdType === 1 ? "One-time" : `Type ${p.keyboardPwdType}`}
                     </span>
                   </div>
-                  <button onClick={() => handleDelPass(p.passcodeId)} className="text-error hover:text-error text-xs font-body">Delete</button>
+                  <button onClick={() => handleDelPass(p.keyboardPwdId)} className="text-error hover:text-error text-xs font-body">Delete</button>
                 </div>
               ))}
             </div>
