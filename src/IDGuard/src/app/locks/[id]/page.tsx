@@ -73,7 +73,7 @@ export default function LockDetailPage() {
     fetcher
   );
 
-  const { data: gwRes } = useSWR<{ ok: boolean; data: { list: Array<{ [key: string]: unknown }> } }>(
+  const { data: gwRes } = useSWR<{ ok: boolean; data: Array<{ [key: string]: unknown }> }>(
     isAuthenticated ? `/api/gateways` : null,
     fetcher,
     { refreshInterval: settings.refreshInterval > 0 ? settings.refreshInterval * 1000 : undefined }
@@ -172,7 +172,7 @@ export default function LockDetailPage() {
 
   const detail = detailRes?.data;
   const passcodes = passRes?.data ?? [];
-  const gateways = gwRes?.data?.list ?? [];
+  const gateways = gwRes?.data ?? [];
   const records = recRes?.data ?? [];
   const gwById = gateways;
   const icCards = icRes?.data ?? [];

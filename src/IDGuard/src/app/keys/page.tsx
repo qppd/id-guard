@@ -12,11 +12,14 @@ interface KeyData {
   keyId: number;
   lockId: number;
   lockName?: string;
-  userType: number;
+  lockAlias?: string;
+  keyName?: string;
+  userType?: string;
+  keyStatus?: string;
   remoteEnable?: number;
   startDate?: number;
   endDate?: number;
-  status?: number;
+  [key: string]: unknown;
 }
 
 interface ApiResponse<T> {
@@ -35,7 +38,7 @@ interface UnlockLinkData {
   unlockLink?: string;
 }
 
-type KeyAction = "delete" | "freeze" | "unfreeze" | "authorize" | "unauthorize";
+type KeyAction = "delete" | "freeze" | "unfreeze";
 
 function toDateTimeLocal(timestamp?: number) {
   if (!timestamp) return "";
@@ -137,6 +140,27 @@ export default function KeysPage() {
     }
   };
 
+  const handleAuthorize = async (key: KeyData, action: "authorize" | "unauthorize") => {
+    const actionId = `${key.keyId}-${action}`;
+    setBusyAction(actionId);
+    setKeyError(key.keyId, "");
+
+    try {
+      const res = await fetch(action === "authorize" ? "/api/keys/authorize" : "/api/keys/unauthorize", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ keyId: key.keyId, lockId: key.lockId }),
+      });
+      const result: ApiResponse<unknown> = await res.json();
+      if (!result.ok) throw new Error(result.error || "Action failed");
+      await mutate();
+    } catch (err) {
+      setKeyError(key.keyId, err instanceof Error ? err.message : "Action failed");
+    } finally {
+      setBusyAction("");
+    }
+  };
+
   const openPeriodForm = (key: KeyData) => {
     if (periodKeyId === key.keyId) {
       setPeriodKeyId(null);
@@ -169,10 +193,10 @@ export default function KeysPage() {
     setKeyError(key.keyId, "");
 
     try {
-      const res = await fetch("/api/keys", {
+      const res = await fetch("/api/keys/period", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "changePeriod", keyId: key.keyId, startDate, endDate }),
+        body: JSON.stringify({ keyId: key.keyId, startDate, endDate }),
       });
       const result: ApiResponse<unknown> = await res.json();
       if (!result.ok) throw new Error(result.error || "Failed to change valid period");
@@ -191,10 +215,10 @@ export default function KeysPage() {
     setKeyError(keyId, "");
 
     try {
-      const res = await fetch("/api/keys", {
+      const res = await fetch("/api/keys/unlock-link", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "getUnlockLink", keyId }),
+        body: JSON.stringify({ keyId }),
       });
       const result: ApiResponse<UnlockLinkData | string> = await res.json();
       if (!result.ok) throw new Error(result.error || "Failed to get unlock link");
@@ -356,11 +380,12 @@ export default function KeysPage() {
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div className="min-w-0 flex-1">
                 <p className="text-accent text-sm font-heading font-semibold truncate">
-                  {key.lockName || `Lock #${key.lockId}`}
+                  {key.lockAlias || key.keyName || key.lockName || `Lock #${key.lockId}`}
                 </p>
                 <p className="text-text-muted text-xs mt-0.5 font-body">
-                  Key ID: {key.keyId} · Type: {key.userType === 110301 ? "Admin" : "User"}
-                  {key.remoteEnable ? " · Remote" : ""}
+                  Key ID: {key.keyId} · Type: {key.userType === "110301" ? "Admin" : "User"}
+                  {key.keyStatus && key.keyStatus !== "110401" ? " · Frozen" : ""}
+                  {key.remoteEnable === 1 ? " · Remote" : ""}
                 </p>
                 {(key.startDate || key.endDate) && (
                   <div className="text-xs text-text-muted mt-1 font-body">
@@ -393,14 +418,14 @@ export default function KeysPage() {
                   {periodKeyId === key.keyId ? "Cancel Period" : "Change Period"}
                 </button>
                 <button
-                  onClick={() => handleKeyAction(key, "authorize")}
+                  onClick={() => handleAuthorize(key, "authorize")}
                   disabled={Boolean(busyAction)}
                   className={`${compactButton} bg-success-soft text-success hover:bg-green-100 border border-green-200`}
                 >
                   {busyAction === `${key.keyId}-authorize` ? "Authorizing..." : "Authorize"}
                 </button>
                 <button
-                  onClick={() => handleKeyAction(key, "unauthorize")}
+                  onClick={() => handleAuthorize(key, "unauthorize")}
                   disabled={Boolean(busyAction)}
                   className={`${compactButton} bg-warning-soft text-warning hover:bg-yellow-100 border border-yellow-200`}
                 >
