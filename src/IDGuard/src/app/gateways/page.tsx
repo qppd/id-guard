@@ -253,7 +253,7 @@ export default function GatewaysPage() {
             {Object.entries(data).slice(0, 20).map(([k, v]) => (
               <div key={k} className="flex justify-between gap-2 min-w-0">
                 <span className="text-text-muted shrink-0">{k}:</span>
-                <span className="text-text-secondary text-right break-all">{String(v)}</span>
+                <span className="text-text-secondary text-right break-all">{typeof v === "object" ? JSON.stringify(v) : String(v)}</span>
               </div>
             ))}
           </div>
@@ -307,8 +307,13 @@ export default function GatewaysPage() {
                       {up.needUpgrade ? "Yes" : "No"}
                     </span>
                   </p>
-                  {up.version && <p><span className="text-text-muted">Version: </span><span className="text-text-secondary">{up.version}</span></p>}
-                  {up.firmwareInfo && <p><span className="text-text-muted">Firmware: </span><span className="text-text-secondary break-all">{up.firmwareInfo}</span></p>}
+                  {up.version && <p><span className="text-text-muted">Version: </span><span className="text-text-secondary">{String(up.version)}</span></p>}
+                  {up.firmwareInfo && (
+                    <div>
+                      <span className="text-text-muted">Firmware: </span>
+                      <span className="text-text-secondary break-all">{JSON.stringify(up.firmwareInfo)}</span>
+                    </div>
+                  )}
                 </>
               );
             })()}
