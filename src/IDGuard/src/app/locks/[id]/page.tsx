@@ -33,7 +33,7 @@ interface Passcode {
   endDate?: number;
 }
 
-interface Record {
+interface LockRecord {
   recordId: number;
   lockId: number;
   keyId: number;
@@ -50,6 +50,7 @@ export default function LockDetailPage() {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   const { settings } = useTheme();
 
+  // Data fetching
   const { data: detailRes, mutate: refreshDetail } = useSWR<{ ok: boolean; data: LockDetail }>(
     isAuthenticated ? `/api/locks/${lockId}` : null,
     fetcher
@@ -60,7 +61,7 @@ export default function LockDetailPage() {
     fetcher
   );
 
-  const { data: recRes } = useSWR<{ ok: boolean; data: Record[]; total: number }>(
+  const { data: recRes, mutate: refreshRec } = useSWR<{ ok: boolean; data: LockRecord[]; total: number }>(
     isAuthenticated ? `/api/records?lockId=${lockId}` : null,
     fetcher
   );
@@ -87,14 +88,37 @@ export default function LockDetailPage() {
     { refreshInterval: settings.refreshInterval > 0 ? settings.refreshInterval * 1000 : 30000 }
   );
 
+  const { data: openStateRes } = useSWR<{ ok: boolean; data: { state: number } }>(
+    isAuthenticated ? `/api/locks/open-state?lockId=${lockId}` : null,
+    fetcher
+  );
+
   const { data: configRes, mutate: refreshConfig } = useSWR<{ ok: boolean; data: { [key: string]: unknown } }>(
     isAuthenticated ? `/api/locks/config?lockId=${lockId}` : null,
     fetcher
   );
 
-  const [passForm, setPassForm] = useState(false);
-  const [newPass, setNewPass] = useState("");
-  const [passType, setPassType] = useState(1);
+  const { data: workingModeRes, mutate: refreshWorkingMode } = useSWR<{ ok: boolean; data: { workingMode: number; cyclicConfig?: string } }>(
+    isAuthenticated ? `/api/locks/working-mode?lockId=${lockId}` : null,
+    fetcher
+  );
+
+  const { data: passageModeRes, mutate: refreshPassageMode } = useSWR<{ ok: boolean; data: { passageMode: number; cyclicConfig?: string; autoUnlock?: number } }>(
+    isAuthenticated ? `/api/locks/passage-mode?lockId=${lockId}` : null,
+    fetcher
+  );
+
+  const { data: lockTimeRes, mutate: refreshLockTime } = useSWR<{ ok: boolean; data: { date: number } }>(
+    isAuthenticated ? `/api/locks/time?lockId=${lockId}` : null,
+    fetcher
+  );
+
+  const { data: batteryRes, mutate: refreshBattery } = useSWR<{ ok: boolean; data: { electricQuantity: number } }>(
+    isAuthenticated ? `/api/locks/battery?lockId=${lockId}` : null,
+    fetcher
+  );
+
+  // UI state
   const [msg, setMsg] = useState("");
   const [err, setErr] = useState("");
   const [upgradeInfo, setUpgradeInfo] = useState("");
@@ -102,7 +126,14 @@ export default function LockDetailPage() {
   const [icExpanded, setIcExpanded] = useState(false);
   const [fpExpanded, setFpExpanded] = useState(false);
   const [configExpanded, setConfigExpanded] = useState(false);
+  const [workingModeExpanded, setWorkingModeExpanded] = useState(false);
+  const [passageModeExpanded, setPassageModeExpanded] = useState(false);
+  const [lockTimeExpanded, setLockTimeExpanded] = useState(false);
 
+  // Passcode form
+  const [passForm, setPassForm] = useState(false);
+  const [newPass, setNewPass] = useState("");
+  const [passType, setPassType] = useState(1);
   // IC card form
   const [icForm, setIcForm] = useState(false);
   const [icNumber, setIcNumber] = useState("");
@@ -111,6 +142,26 @@ export default function LockDetailPage() {
   const [fpForm, setFpForm] = useState(false);
   const [fpNumber, setFpNumber] = useState("");
   const [fpName, setFpName] = useState("");
+
+  // Rename form
+  const [renameForm, setRenameForm] = useState(false);
+  const [renameAlias, setRenameAlias] = useState("");
+
+  // Transfer form
+  const [transferForm, setTransferForm] = useState(false);
+  const [transferReceiver, setTransferReceiver] = useState("");
+
+  // Admin passcode
+  const [adminPassForm, setAdminPassForm] = useState(false);
+  const [adminPass, setAdminPass] = useState("");
+
+  // Auto lock time
+  const [autoLockForm, setAutoLockForm] = useState(false);
+  const [autoLockSeconds, setAutoLockSeconds] = useState("");
+  // Working mode config
+  const [workingModeConfig, setWorkingModeConfig] = useState(1);
+  // Passage mode config
+  const [passageModeConfig, setPassageModeConfig] = useState(2);
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) router.replace("/login");
@@ -123,10 +174,16 @@ export default function LockDetailPage() {
   const passcodes = passRes?.data ?? [];
   const gateways = gwRes?.data?.list ?? [];
   const records = recRes?.data ?? [];
-  const gwById = gateways.filter((g: { [key: string]: unknown }) => g.lockId === lockId || g.lockNum);
+  const gwById = gateways;
   const icCards = icRes?.data ?? [];
   const fingerprints = fpRes?.data ?? [];
+  const battery = batteryRes?.data?.electricQuantity ?? detail?.electricQuantity;
+  const openState = openStateRes?.data?.state;
+  const workingMode = workingModeRes?.data?.workingMode;
+  const passageMode = passageModeRes?.data?.passageMode;
+  const lockTime = lockTimeRes?.data?.date;
 
+  // Handlers
   const handleAddPass = async (e: React.FormEvent) => {
     e.preventDefault();
     setMsg(""); setErr("");
@@ -178,7 +235,6 @@ export default function LockDetailPage() {
     }
   };
 
-  // IC Card handlers
   const handleAddIc = async (e: React.FormEvent) => {
     e.preventDefault();
     setMsg(""); setErr("");
@@ -214,7 +270,6 @@ export default function LockDetailPage() {
     }
   };
 
-  // Fingerprint handlers
   const handleAddFp = async (e: React.FormEvent) => {
     e.preventDefault();
     setMsg(""); setErr("");
@@ -250,18 +305,191 @@ export default function LockDetailPage() {
     }
   };
 
-  const batteryColor = detail?.electricQuantity != null
-    ? detail.electricQuantity > 50 ? "text-success" : detail.electricQuantity > 20 ? "text-warning" : "text-error"
+  // --- New handlers ---
+  const handleRename = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setMsg(""); setErr("");
+    try {
+      const res = await fetch("/api/locks/rename", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ lockId, lockAlias: renameAlias }),
+      });
+      const data = await res.json();
+      if (!data.ok) throw new Error(data.error);
+      setMsg("Lock renamed!");
+      setRenameAlias("");
+      setRenameForm(false);
+      refreshDetail();
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Failed");
+    }
+  };
+
+  const handleDeleteLock = async () => {
+    if (!confirm("Are you sure? This will delete all ekeys, passcodes, cards, and records.")) return;
+    setMsg(""); setErr("");
+    try {
+      const res = await fetch("/api/locks/delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ lockId }),
+      });
+      const data = await res.json();
+      if (!data.ok) throw new Error(data.error);
+      router.push("/dashboard");
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Failed");
+    }
+  };
+
+  const handleTransfer = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setMsg(""); setErr("");
+    try {
+      const res = await fetch("/api/locks/transfer", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ receiverUsername: transferReceiver, lockIdList: `[${lockId}]` }),
+      });
+      const data = await res.json();
+      if (!data.ok) throw new Error(data.error);
+      setMsg("Lock transferred!");
+      setTransferReceiver("");
+      setTransferForm(false);
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Failed");
+    }
+  };
+
+  const handleChangeAdminPass = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setMsg(""); setErr("");
+    try {
+      const res = await fetch("/api/locks/admin-passcode", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ lockId, password: adminPass }),
+      });
+      const data = await res.json();
+      if (!data.ok) throw new Error(data.error);
+      setMsg("Admin passcode changed!");
+      setAdminPass("");
+      setAdminPassForm(false);
+      refreshDetail();
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Failed");
+    }
+  };
+
+  const handleSetAutoLock = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setMsg(""); setErr("");
+    try {
+      const res = await fetch("/api/locks/auto-lock", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ lockId, seconds: parseInt(autoLockSeconds), type: 2 }),
+      });
+      const data = await res.json();
+      if (!data.ok) throw new Error(data.error);
+      setMsg("Auto lock time set!");
+      setAutoLockSeconds("");
+      setAutoLockForm(false);
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Failed");
+    }
+  };
+
+  const handleAdjustTime = async () => {
+    setMsg(""); setErr("");
+    try {
+      const res = await fetch("/api/locks/adjust-time", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ lockId }),
+      });
+      const data = await res.json();
+      if (!data.ok) throw new Error(data.error);
+      setMsg("Lock time adjusted!");
+      refreshLockTime();
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Failed");
+    }
+  };
+
+  const handleConfigWorkingMode = async () => {
+    setMsg(""); setErr("");
+    try {
+      const res = await fetch("/api/locks/working-mode", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ lockId, workingMode: workingModeConfig, type: 2 }),
+      });
+      const data = await res.json();
+      if (!data.ok) throw new Error(data.error);
+      setMsg("Working mode updated!");
+      refreshWorkingMode();
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Failed");
+    }
+  };
+
+  const handleConfigPassageMode = async () => {
+    setMsg(""); setErr("");
+    try {
+      const res = await fetch("/api/locks/passage-mode", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ lockId, passageMode: passageModeConfig, type: 2 }),
+      });
+      const data = await res.json();
+      if (!data.ok) throw new Error(data.error);
+      setMsg("Passage mode updated!");
+      refreshPassageMode();
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Failed");
+    }
+  };
+
+  const handleClearRecords = async () => {
+    if (!confirm("Clear all unlock records?")) return;
+    setMsg(""); setErr("");
+    try {
+      const res = await fetch("/api/records/clear", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ lockId }),
+      });
+      const data = await res.json();
+      if (!data.ok) throw new Error(data.error);
+      setMsg("Records cleared!");
+      refreshRec();
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Failed");
+    }
+  };
+
+  const batteryColor = battery != null
+    ? battery > 50 ? "text-success" : battery > 20 ? "text-warning" : "text-error"
     : "text-text-muted";
 
-  const batteryBg = detail?.electricQuantity != null
-    ? detail.electricQuantity > 50 ? "bg-success-soft" : detail.electricQuantity > 20 ? "bg-warning-soft" : "bg-error-soft"
+  const batteryBg = battery != null
+    ? battery > 50 ? "bg-success-soft" : battery > 20 ? "bg-warning-soft" : "bg-error-soft"
     : "";
 
   const unlockTypeLabel: { [key: number]: string } = {
     1: "Bluetooth", 2: "Passcode", 3: "IC Card", 4: "Fingerprint",
     5: "Mechanical Key", 6: "Gateway", 7: "Face", 8: "Remote",
     9: "QR Code", 10: "Palm Vein", 11: "Door Sensor",
+  };
+
+  const workingModeLabel: { [key: number]: string } = {
+    1: "All Day", 2: "Off", 3: "Custom",
+  };
+
+  const passageModeLabel: { [key: number]: string } = {
+    1: "On", 2: "Off",
   };
 
   return (
@@ -277,18 +505,19 @@ export default function LockDetailPage() {
           </div>
           <div className="flex items-center gap-3 shrink-0">
             {/* Door Sensor */}
-            {doorRes?.data != null && (
+            {(doorRes?.data != null || openState != null) && (
               <span className={`text-xs px-2 py-1 rounded-full font-body ${
-                doorRes.data.doorState
+                (openState === 1 || doorRes?.data?.doorState)
                   ? "bg-success-soft text-success border border-green-200"
                   : "bg-alt text-text-secondary border border-border-card"
               }`}>
-                {doorRes.data.doorState ? "Open" : "Closed"}
+                {(openState === 1 || doorRes?.data?.doorState) ? "Open" : "Closed"}
               </span>
             )}
             <span className={`text-base sm:text-lg font-bold ${batteryColor} ${batteryBg} px-2 py-1 rounded`}>
-              {detail != null ? `${detail.electricQuantity}%` : "..."}
+              {battery != null ? `${battery}%` : "..."}
             </span>
+            <button onClick={() => refreshBattery()} className="text-text-muted hover:text-accent text-xs font-body">Refresh</button>
           </div>
         </div>
         <div className="grid-detail-info mt-4 sm:mt-6 text-sm">
@@ -300,13 +529,60 @@ export default function LockDetailPage() {
           <div className="sm:col-span-1"><span className="text-text-muted">Admin Code</span><p className="text-foreground font-mono text-xs break-all">{detail?.adminPwd || "—"}</p></div>
         </div>
 
-        {/* Upgrade */}
-        <div className="mt-4 flex flex-col sm:flex-row gap-2 sm:gap-3">
-          <button onClick={handleCheckUpgrade} className="w-full sm:w-auto px-3 py-1.5 rounded bg-card border border-border-card text-text-secondary text-sm hover:bg-sky hover:text-accent transition-colors font-body">
+        {/* Lock management actions */}
+        <div className="mt-4 flex flex-wrap gap-2 sm:gap-3">
+          <button onClick={handleCheckUpgrade} className="px-3 py-1.5 rounded bg-card border border-border-card text-text-secondary text-sm hover:bg-sky hover:text-accent transition-colors font-body">
             Check Upgrade
+          </button>
+          <button onClick={() => setRenameForm(!renameForm)} className="px-3 py-1.5 rounded bg-card border border-border-card text-text-secondary text-sm hover:bg-sky hover:text-accent transition-colors font-body">
+            Rename
+          </button>
+          <button onClick={() => setTransferForm(!transferForm)} className="px-3 py-1.5 rounded bg-card border border-border-card text-text-secondary text-sm hover:bg-sky hover:text-accent transition-colors font-body">
+            Transfer
+          </button>
+          <button onClick={() => setAdminPassForm(!adminPassForm)} className="px-3 py-1.5 rounded bg-card border border-border-card text-text-secondary text-sm hover:bg-sky hover:text-accent transition-colors font-body">
+            Change Admin Passcode
+          </button>
+          <button onClick={() => setAutoLockForm(!autoLockForm)} className="px-3 py-1.5 rounded bg-card border border-border-card text-text-secondary text-sm hover:bg-sky hover:text-accent transition-colors font-body">
+            Auto Lock Time
+          </button>
+          <button onClick={handleDeleteLock} className="px-3 py-1.5 rounded bg-error-soft border border-red-200 text-error text-sm hover:bg-red-100 transition-colors font-body">
+            Delete Lock
           </button>
           {upgradeInfo && <p className="text-xs text-text-secondary self-start sm:self-center font-body">{upgradeInfo}</p>}
         </div>
+
+        {/* Rename form */}
+        {renameForm && (
+          <form onSubmit={handleRename} className="mt-3 p-3 bg-alt rounded space-y-2">
+            <input type="text" placeholder="New lock alias" value={renameAlias} onChange={(e) => setRenameAlias(e.target.value)} required className="w-full px-3 py-2 rounded bg-card border border-border-card text-foreground text-sm focus:outline-none focus:border-focus-ring" />
+            <button type="submit" className="px-4 py-1.5 rounded bg-accent text-white text-sm hover:bg-accent-hover font-body">Save</button>
+          </form>
+        )}
+
+        {/* Transfer form */}
+        {transferForm && (
+          <form onSubmit={handleTransfer} className="mt-3 p-3 bg-alt rounded space-y-2">
+            <input type="text" placeholder="Receiver username (email or phone)" value={transferReceiver} onChange={(e) => setTransferReceiver(e.target.value)} required className="w-full px-3 py-2 rounded bg-card border border-border-card text-foreground text-sm focus:outline-none focus:border-focus-ring" />
+            <button type="submit" className="px-4 py-1.5 rounded bg-accent text-white text-sm hover:bg-accent-hover font-body">Transfer Lock</button>
+          </form>
+        )}
+
+        {/* Admin passcode form */}
+        {adminPassForm && (
+          <form onSubmit={handleChangeAdminPass} className="mt-3 p-3 bg-alt rounded space-y-2">
+            <input type="text" placeholder="New admin passcode" value={adminPass} onChange={(e) => setAdminPass(e.target.value.replace(/\D/g, ""))} maxLength={9} minLength={4} required className="w-full px-3 py-2 rounded bg-card border border-border-card text-foreground text-sm focus:outline-none focus:border-focus-ring" />
+            <button type="submit" className="px-4 py-1.5 rounded bg-accent text-white text-sm hover:bg-accent-hover font-body">Change Passcode</button>
+          </form>
+        )}
+
+        {/* Auto lock time form */}
+        {autoLockForm && (
+          <form onSubmit={handleSetAutoLock} className="mt-3 p-3 bg-alt rounded space-y-2">
+            <input type="number" placeholder="Auto lock seconds (0 = off)" value={autoLockSeconds} onChange={(e) => setAutoLockSeconds(e.target.value)} required className="w-full px-3 py-2 rounded bg-card border border-border-card text-foreground text-sm focus:outline-none focus:border-focus-ring" />
+            <button type="submit" className="px-4 py-1.5 rounded bg-accent text-white text-sm hover:bg-accent-hover font-body">Set Auto Lock</button>
+          </form>
+        )}
       </div>
 
       {/* Error/success banner */}
@@ -449,12 +725,72 @@ export default function LockDetailPage() {
         </div>
       </div>
 
+      {/* Working Mode */}
+      <div className="card-compact bg-card border border-border-card rounded-lg p-4 mt-4 sm:mt-6 shadow-card">
+        <button onClick={() => setWorkingModeExpanded(!workingModeExpanded)} className="flex items-center justify-between w-full">
+          <h2 className="text-base sm:text-lg font-heading font-semibold text-accent">Working Mode</h2>
+          <span className="text-text-muted">{workingModeExpanded ? "\u25B2" : "\u25BC"}</span>
+        </button>
+        {workingModeExpanded && (
+          <div className="mt-3 space-y-2">
+            <p className="text-sm text-text-secondary font-body">Current: {workingMode != null ? workingModeLabel[workingMode] || `Mode ${workingMode}` : "Unknown"}</p>
+            <div className="flex gap-2 items-center">
+              <select value={workingModeConfig} onChange={(e) => setWorkingModeConfig(Number(e.target.value))} className="px-3 py-2 rounded bg-card border border-border-card text-foreground text-sm focus:outline-none focus:border-focus-ring">
+                <option value={1}>All Day</option>
+                <option value={2}>Off</option>
+                <option value={3}>Custom</option>
+              </select>
+              <button onClick={handleConfigWorkingMode} className="px-4 py-2 rounded bg-accent text-white text-sm hover:bg-accent-hover font-body">Apply</button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Passage Mode */}
+      <div className="card-compact bg-card border border-border-card rounded-lg p-4 mt-4 sm:mt-6 shadow-card">
+        <button onClick={() => setPassageModeExpanded(!passageModeExpanded)} className="flex items-center justify-between w-full">
+          <h2 className="text-base sm:text-lg font-heading font-semibold text-accent">Passage Mode</h2>
+          <span className="text-text-muted">{passageModeExpanded ? "\u25B2" : "\u25BC"}</span>
+        </button>
+        {passageModeExpanded && (
+          <div className="mt-3 space-y-2">
+            <p className="text-sm text-text-secondary font-body">Current: {passageMode != null ? passageModeLabel[passageMode] || `Mode ${passageMode}` : "Unknown"}</p>
+            <div className="flex gap-2 items-center">
+              <select value={passageModeConfig} onChange={(e) => setPassageModeConfig(Number(e.target.value))} className="px-3 py-2 rounded bg-card border border-border-card text-foreground text-sm focus:outline-none focus:border-focus-ring">
+                <option value={1}>On</option>
+                <option value={2}>Off</option>
+              </select>
+              <button onClick={handleConfigPassageMode} className="px-4 py-2 rounded bg-accent text-white text-sm hover:bg-accent-hover font-body">Apply</button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Lock Time */}
+      <div className="card-compact bg-card border border-border-card rounded-lg p-4 mt-4 sm:mt-6 shadow-card">
+        <button onClick={() => setLockTimeExpanded(!lockTimeExpanded)} className="flex items-center justify-between w-full">
+          <h2 className="text-base sm:text-lg font-heading font-semibold text-accent">Lock Time</h2>
+          <span className="text-text-muted">{lockTimeExpanded ? "\u25B2" : "\u25BC"}</span>
+        </button>
+        {lockTimeExpanded && (
+          <div className="mt-3 flex items-center justify-between">
+            <p className="text-sm text-text-secondary font-body">
+              {lockTime ? new Date(lockTime).toLocaleString() : "Unknown"}
+            </p>
+            <button onClick={handleAdjustTime} className="px-4 py-2 rounded bg-accent text-white text-sm hover:bg-accent-hover font-body">Adjust Time</button>
+          </div>
+        )}
+      </div>
+
       {/* Unlock Records */}
       <div className="card-compact bg-card border border-border-card rounded-lg p-4 mt-4 sm:mt-6 shadow-card">
-      <button onClick={() => setRecordsExpanded(!recordsExpanded)} className="flex items-center justify-between w-full">
-        <h2 className="text-base sm:text-lg font-heading font-semibold text-accent">Unlock Records ({recRes?.total ?? 0})</h2>
-          <span className="text-text-muted">{recordsExpanded ? "\u25B2" : "\u25BC"}</span>
-        </button>
+        <div className="flex items-center justify-between">
+          <button onClick={() => setRecordsExpanded(!recordsExpanded)} className="flex items-center gap-2">
+            <h2 className="text-base sm:text-lg font-heading font-semibold text-accent">Unlock Records ({recRes?.total ?? 0})</h2>
+            <span className="text-text-muted">{recordsExpanded ? "\u25B2" : "\u25BC"}</span>
+          </button>
+          <button onClick={handleClearRecords} className="text-error hover:text-error text-xs font-body">Clear All</button>
+        </div>
         {recordsExpanded && (
           <div className="mt-3 space-y-1 max-h-96 overflow-y-auto">
             {records.length === 0 ? (

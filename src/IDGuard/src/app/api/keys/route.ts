@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
   const { action, keyId, lockId, receiverUsername, keyName, startDate, endDate, remoteEnable } = await req.json();
 
   const result = await callWithAuth(async (token) => {
-    const { sendKey, deleteKey, updateKey, freezeKey, unfreezeKey } = await import("@/lib/ttlock");
+    const { sendKey, deleteKey, updateKey, freezeKey, unfreezeKey, changeKeyPeriod, authorizeKey, unauthorizeKey, getKeyUnlockLink } = await import("@/lib/ttlock");
 
     switch (action) {
       case "send":
@@ -32,6 +32,14 @@ export async function POST(req: NextRequest) {
         return freezeKey(token, keyId);
       case "unfreeze":
         return unfreezeKey(token, keyId);
+      case "changePeriod":
+        return changeKeyPeriod(token, keyId, startDate, endDate);
+      case "authorize":
+        return authorizeKey(token, lockId, keyId);
+      case "unauthorize":
+        return unauthorizeKey(token, lockId, keyId);
+      case "getUnlockLink":
+        return getKeyUnlockLink(token, keyId);
       default:
         throw new Error("Unknown action");
     }
