@@ -1,21 +1,11 @@
-import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
+import { NextResponse } from "next/server";
+import { callWithAuth } from "@/lib/auth";
 
 export async function GET() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get("tt_token")?.value;
-  if (!token) {
-    return NextResponse.json({ ok: false, error: "Not authenticated" }, { status: 401 });
-  }
-
-  try {
+  const result = await callWithAuth(async (token) => {
     const { listGateways } = await import("@/lib/ttlock");
-    const data = await listGateways(token);
-    return NextResponse.json({ ok: true, data: data.list });
-  } catch (err) {
-    const message = err instanceof Error ? err.message : "Failed";
-        const isAuthError = message.includes("token") || message.includes("auth") || message.includes("expired");
-        const status = isAuthError ? 401 : 502;
-        return NextResponse.json({ ok: false, error: message }, { status });
-  }
+    return listGateways(token);
+  });
+  if (!result.ok) return result.response;
+  return NextResponse.json({ ok: true, data: result.data.list });
 }

@@ -91,6 +91,11 @@ async function apiPost<T>(
     body: new URLSearchParams(body),
   });
 
+  // TTLock returns HTTP 401/403 when the access token is expired/invalid
+  if (res.status === 401 || res.status === 403) {
+    throw new Error(`TTLock token error (HTTP ${res.status}): token expired or invalid`);
+  }
+
   const data = await res.json();
   if (data.errcode && data.errcode !== 0) {
     throw new Error(`TTLock API error ${data.errcode}: ${data.errmsg || "Unknown"}`);
