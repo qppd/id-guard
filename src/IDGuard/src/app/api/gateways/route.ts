@@ -13,9 +13,9 @@ export async function GET() {
     const data = await listGateways(token);
     return NextResponse.json({ ok: true, data: data.list });
   } catch (err) {
-    return NextResponse.json(
-      { ok: false, error: err instanceof Error ? err.message : "Failed to fetch gateways" },
-      { status: 502 }
-    );
+    const message = err instanceof Error ? err.message : "Failed";
+        const isAuthError = message.includes("token") || message.includes("auth") || message.includes("expired");
+        const status = isAuthError ? 401 : 502;
+        return NextResponse.json({ ok: false, error: message }, { status });
   }
 }

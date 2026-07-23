@@ -14,10 +14,10 @@ export async function GET() {
     const data = await listKeys(token);
     return NextResponse.json({ ok: true, data: data.list });
   } catch (err) {
-    return NextResponse.json(
-      { ok: false, error: err instanceof Error ? err.message : "Failed to fetch keys" },
-      { status: 502 }
-    );
+    const message = err instanceof Error ? err.message : "Failed to fetch keys";
+    const isAuthError = message.includes("token") || message.includes("auth") || message.includes("expired");
+    const status = isAuthError ? 401 : 502;
+    return NextResponse.json({ ok: false, error: message }, { status });
   }
 }
 
@@ -70,9 +70,9 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ ok: false, error: "Unknown action" }, { status: 400 });
     }
   } catch (err) {
-    return NextResponse.json(
-      { ok: false, error: err instanceof Error ? err.message : "Failed" },
-      { status: 502 }
-    );
+    const message = err instanceof Error ? err.message : "Failed";
+    const isAuthError = message.includes("token") || message.includes("auth") || message.includes("expired");
+    const status = isAuthError ? 401 : 502;
+    return NextResponse.json({ ok: false, error: message }, { status });
   }
 }

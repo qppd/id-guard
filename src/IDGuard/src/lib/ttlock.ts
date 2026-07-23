@@ -12,11 +12,15 @@ interface TokenStore {
 const tokenStore: TokenStore | null = null;
 
 function getClientId() {
-  return process.env.TTLOCK_CLIENT_ID!;
+  const id = process.env.TTLOCK_CLIENT_ID;
+  if (!id) throw new Error("TTLOCK_CLIENT_ID not configured");
+  return id;
 }
 
 function getClientSecret() {
-  return process.env.TTLOCK_CLIENT_SECRET!;
+  const secret = process.env.TTLOCK_CLIENT_SECRET;
+  if (!secret) throw new Error("TTLOCK_CLIENT_SECRET not configured");
+  return secret;
 }
 
 export async function login(

@@ -18,9 +18,9 @@ export async function GET(req: NextRequest) {
     const data = await getDoorSensorState(token, lockId);
     return NextResponse.json({ ok: true, data });
   } catch (err) {
-    return NextResponse.json(
-      { ok: false, error: err instanceof Error ? err.message : "Failed" },
-      { status: 502 }
-    );
+    const message = err instanceof Error ? err.message : "Failed";
+    const isAuthError = message.includes("token") || message.includes("auth") || message.includes("expired");
+    const status = isAuthError ? 401 : 502;
+    return NextResponse.json({ ok: false, error: message }, { status });
   }
 }
