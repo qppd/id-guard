@@ -36,11 +36,15 @@ interface Passcode {
 interface LockRecord {
   recordId: number;
   lockId: number;
-  keyId: number;
-  unlockTime: number;
-  unlockType: number;
+  keyId?: number;
+  lockDate: number;
+  recordType: number;
+  serverDate?: number;
   gatewayId?: number;
   success: number;
+  username?: string;
+  keyboardPwd?: string;
+  [key: string]: unknown;
 }
 
 export default function LockDetailPage() {
@@ -478,10 +482,30 @@ export default function LockDetailPage() {
     ? battery > 50 ? "bg-success-soft" : battery > 20 ? "bg-warning-soft" : "bg-error-soft"
     : "";
 
-  const unlockTypeLabel: { [key: number]: string } = {
-    1: "Bluetooth", 2: "Passcode", 3: "IC Card", 4: "Fingerprint",
-    5: "Mechanical Key", 6: "Gateway", 7: "Face", 8: "Remote",
-    9: "QR Code", 10: "Palm Vein", 11: "Door Sensor",
+  const recordTypeLabel: { [key: number]: string } = {
+    1: "Bluetooth Unlock",
+    2: "Bluetooth Lock",
+    3: "Bluetooth Open",
+    4: "Passcode Unlock",
+    5: "Passcode Lock",
+    6: "IC Card",
+    7: "IC Card",
+    8: "Fingerprint",
+    9: "Fingerprint",
+    10: "Mechanical Key",
+    11: "Mechanical Key",
+    12: "App Unlock",
+    13: "App Lock",
+    14: "Gateway Unlock",
+    15: "Gateway Lock",
+    16: "Remote Unlock",
+    17: "Remote Lock",
+    22: "Passcode Error",
+    26: "IC Card",
+    28: "App Unlock",
+    44: "Door Opened",
+    48: "Door Closed",
+    55: "Remote",
   };
 
   const workingModeLabel: { [key: number]: string } = {
@@ -798,14 +822,22 @@ export default function LockDetailPage() {
             ) : (
               records.map((r) => (
                 <div key={r.recordId} className="flex items-center justify-between bg-alt rounded px-3 py-2 text-sm">
-                  <div className="flex items-center gap-3">
-                    <span className={r.success ? "text-success" : "text-error"}>
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
+                    <span className={`shrink-0 ${r.success ? "text-success" : "text-error"}`}>
                       {r.success ? "Success" : "Failed"}
                     </span>
-                    <span className="text-text-secondary font-body">{unlockTypeLabel[r.unlockType] || `Type ${r.unlockType}`}</span>
-                    <span className="text-text-muted text-xs font-body">{new Date(r.unlockTime).toLocaleString()}</span>
+                    <span className="text-text-secondary font-body truncate">
+                      {recordTypeLabel[r.recordType] || `Type ${r.recordType}`}
+                    </span>
+                    {r.username && (
+                      <span className="text-text-muted text-xs font-body truncate">{r.username}</span>
+                    )}
                   </div>
-                  <span className="text-text-muted text-xs font-body">keyId: {r.keyId}</span>
+                  <div className="flex items-center gap-3 shrink-0">
+                    <span className="text-text-muted text-xs font-body">
+                      {r.lockDate ? new Date(r.lockDate).toLocaleString() : "—"}
+                    </span>
+                  </div>
                 </div>
               ))
             )}
