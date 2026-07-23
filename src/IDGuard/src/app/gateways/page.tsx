@@ -46,7 +46,7 @@ interface UpgradeCheck {
   [key: string]: unknown;
 }
 
-type ActionState = { loading: boolean; error: string; success: string };
+type ActionState = { loading: boolean; error: string; success: string; data?: unknown };
 
 const initialAction: ActionState = { loading: false, error: "", success: "" };
 
@@ -104,12 +104,12 @@ export default function GatewaysPage() {
       section === "devices" ? `/api/gateways/devices?gatewayId=${gw.gatewayId}` :
       `/api/gateways/upgrade-check?gatewayId=${gw.gatewayId}`;
 
-    setAction(gw.gatewayId, section, { ...initialAction, loading: true });
+    setAction(gw.gatewayId, section, { loading: true, error: "", success: "" });
     try {
       const res = await fetch(url);
       const result = await res.json();
       if (!result.ok) throw new Error(result.error || `Failed to load ${section}`);
-      setAction(gw.gatewayId, section, { loading: false, error: "", success: "", ...result });
+      setAction(gw.gatewayId, section, { loading: false, error: "", success: "", data: result.data });
     } catch (err) {
       setAction(gw.gatewayId, section, { loading: false, error: err instanceof Error ? err.message : "Failed", success: "" });
     }
@@ -239,10 +239,7 @@ export default function GatewaysPage() {
     const section = showSection[gw.gatewayId];
     if (!section) return null;
     const state = getAction(gw.gatewayId, section);
-    const payload = (state as { success?: string }).success;
-    // success carries the JSON payload for fetch-style sections
-    const data: { [key: string]: unknown } | unknown[] | undefined =
-      typeof payload === "object" ? (payload as { [key: string]: unknown } | unknown[]) : undefined;
+    const data = state.data as { [key: string]: unknown } | unknown[] | undefined;
 
     return (
       <div className="mt-3 pt-3 border-t border-border-card">
