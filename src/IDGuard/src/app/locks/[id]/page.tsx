@@ -141,14 +141,7 @@ export default function LockDetailPage() {
   const [passForm, setPassForm] = useState(false);
   const [newPass, setNewPass] = useState("");
   const [passType, setPassType] = useState(2);
-  // IC card form
-  const [icForm, setIcForm] = useState(false);
-  const [icNumber, setIcNumber] = useState("");
-  const [icName, setIcName] = useState("");
-  // Fingerprint form
-  const [fpForm, setFpForm] = useState(false);
-  const [fpNumber, setFpNumber] = useState("");
-  const [fpName, setFpName] = useState("");
+  // IC card & Fingerprint add forms removed — requires Bluetooth APP SDK, not cloud API
 
   // Rename form
   const [renameForm, setRenameForm] = useState(false);
@@ -246,25 +239,7 @@ export default function LockDetailPage() {
     }
   };
 
-  const handleAddIc = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setMsg(""); setErr("");
-    try {
-      const res = await fetch("/api/ic-cards", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "add", lockId, cardNumber: icNumber, cardName: icName }),
-      });
-      const data = await res.json();
-      if (!data.ok) throw new Error(data.error);
-      setMsg("IC Card added!");
-      setIcNumber(""); setIcName("");
-      setIcForm(false);
-      refreshIc();
-    } catch (e) {
-      setErr(e instanceof Error ? e.message : "Failed");
-    }
-  };
+  // IC card & Fingerprint add handlers removed — requires Bluetooth APP SDK
 
   const handleDelIc = async (cardId: number) => {
     try {
@@ -276,26 +251,6 @@ export default function LockDetailPage() {
       const data = await res.json();
       if (!data.ok) throw new Error(data.error);
       refreshIc();
-    } catch (e) {
-      setErr(e instanceof Error ? e.message : "Failed");
-    }
-  };
-
-  const handleAddFp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setMsg(""); setErr("");
-    try {
-      const res = await fetch("/api/fingerprints", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "add", lockId, fingerprintNumber: fpNumber, fingerprintName: fpName }),
-      });
-      const data = await res.json();
-      if (!data.ok) throw new Error(data.error);
-      setMsg("Fingerprint added!");
-      setFpNumber(""); setFpName("");
-      setFpForm(false);
-      refreshFp();
     } catch (e) {
       setErr(e instanceof Error ? e.message : "Failed");
     }
@@ -625,7 +580,7 @@ export default function LockDetailPage() {
         <div className="card-compact bg-card border border-border-card rounded-lg p-4 shadow-card">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-lg font-heading font-semibold text-accent">Passcodes</h2>
-            <button onClick={() => { setPassForm(!passForm); setIcForm(false); setFpForm(false); }} className="px-3 py-1 rounded bg-accent text-white text-sm hover:bg-accent-hover transition-colors font-body">
+            <button onClick={() => { setPassForm(!passForm); }} className="px-3 py-1 rounded bg-accent text-white text-sm hover:bg-accent-hover transition-colors font-body">
               {passForm ? "Cancel" : "+ Add"}
             </button>
           </div>
@@ -665,18 +620,12 @@ export default function LockDetailPage() {
         <div className="card-compact bg-card border border-border-card rounded-lg p-4 shadow-card">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-lg font-heading font-semibold text-accent">IC Cards</h2>
-            <button onClick={() => { setIcForm(!icForm); setPassForm(false); setFpForm(false); }} className="px-3 py-1 rounded bg-accent text-white text-sm hover:bg-accent-hover transition-colors font-body">
-              {icForm ? "Cancel" : "+ Add"}
+            <button onClick={() => { setPassForm(false); }} className="px-3 py-1 rounded bg-alt text-text-secondary text-sm border border-border-card hover:bg-card transition-colors font-body">
+              Manage
             </button>
           </div>
 
-          {icForm && (
-            <form onSubmit={handleAddIc} className="mb-4 p-3 bg-alt rounded space-y-2">
-              <input type="text" placeholder="Card Number" value={icNumber} onChange={(e) => setIcNumber(e.target.value)} required className="w-full px-3 py-2 rounded bg-card border border-border-card text-foreground text-sm focus:outline-none focus:border-focus-ring" />
-              <input type="text" placeholder="Card Name" value={icName} onChange={(e) => setIcName(e.target.value)} required className="w-full px-3 py-2 rounded bg-card border border-border-card text-foreground text-sm focus:outline-none focus:border-focus-ring" />
-              <button type="submit" className="w-full py-1.5 rounded bg-accent text-white text-sm hover:bg-accent-hover font-body">Add IC Card</button>
-            </form>
-          )}
+          {/* IC card add form removed — requires Bluetooth APP SDK */}
 
           {icCards.length === 0 ? (
             <p className="text-text-muted text-sm text-center py-4 font-body">No IC cards</p>
@@ -699,18 +648,12 @@ export default function LockDetailPage() {
         <div className="card-compact bg-card border border-border-card rounded-lg p-4 shadow-card">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-lg font-heading font-semibold text-accent">Fingerprints</h2>
-            <button onClick={() => { setFpForm(!fpForm); setPassForm(false); setIcForm(false); }} className="px-3 py-1 rounded bg-accent text-white text-sm hover:bg-accent-hover transition-colors font-body">
-              {fpForm ? "Cancel" : "+ Add"}
+            <button onClick={() => { setPassForm(false); }} className="px-3 py-1 rounded bg-alt text-text-secondary text-sm border border-border-card hover:bg-card transition-colors font-body">
+              Manage
             </button>
           </div>
 
-          {fpForm && (
-            <form onSubmit={handleAddFp} className="mb-4 p-3 bg-alt rounded space-y-2">
-              <input type="text" placeholder="Fingerprint Number" value={fpNumber} onChange={(e) => setFpNumber(e.target.value)} required className="w-full px-3 py-2 rounded bg-card border border-border-card text-foreground text-sm focus:outline-none focus:border-focus-ring" />
-              <input type="text" placeholder="Fingerprint Name" value={fpName} onChange={(e) => setFpName(e.target.value)} required className="w-full px-3 py-2 rounded bg-card border border-border-card text-foreground text-sm focus:outline-none focus:border-focus-ring" />
-              <button type="submit" className="w-full py-1.5 rounded bg-accent text-white text-sm hover:bg-accent-hover font-body">Add Fingerprint</button>
-            </form>
-          )}
+          {/* Fingerprint add form removed — requires Bluetooth APP SDK */}
 
           {fingerprints.length === 0 ? (
             <p className="text-text-muted text-sm text-center py-4 font-body">No fingerprints</p>
