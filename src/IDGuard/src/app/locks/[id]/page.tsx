@@ -137,7 +137,7 @@ export default function LockDetailPage() {
   // Passcode form
   const [passForm, setPassForm] = useState(false);
   const [newPass, setNewPass] = useState("");
-  const [passType, setPassType] = useState(1);
+  const [passType, setPassType] = useState(2);
   // IC card form
   const [icForm, setIcForm] = useState(false);
   const [icNumber, setIcNumber] = useState("");
@@ -192,10 +192,14 @@ export default function LockDetailPage() {
     e.preventDefault();
     setMsg(""); setErr("");
     try {
+      const now = Date.now();
+      // TTLock requires startDate for all types; Period type also needs endDate
+      const startDate = now;
+      const endDate = passType === 3 ? now + 365 * 24 * 60 * 60 * 1000 : undefined;
       const res = await fetch("/api/passcodes", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "add", lockId, passcode: newPass, type: passType }),
+        body: JSON.stringify({ action: "add", lockId, passcode: newPass, type: passType, startDate, endDate }),
       });
       const data = await res.json();
       if (!data.ok) throw new Error(data.error);
@@ -627,9 +631,9 @@ export default function LockDetailPage() {
             <form onSubmit={handleAddPass} className="mb-4 p-3 bg-alt rounded space-y-2">
               <input type="text" placeholder="Passcode (4-9 digits)" value={newPass} onChange={(e) => setNewPass(e.target.value.replace(/\D/g, ""))} maxLength={9} minLength={4} required className="w-full px-3 py-2 rounded bg-card border border-border-card text-foreground text-sm focus:outline-none focus:border-focus-ring" />
               <select value={passType} onChange={(e) => setPassType(Number(e.target.value))} className="w-full px-3 py-2 rounded bg-card border border-border-card text-foreground text-sm focus:outline-none focus:border-focus-ring">
-                <option value={1}>Permanent</option>
-                <option value={2}>Timed</option>
-                <option value={3}>Cyclic</option>
+                <option value={2}>Permanent</option>
+                <option value={3}>Period (Timed)</option>
+                <option value={1}>One-time</option>
               </select>
               <button type="submit" className="w-full py-1.5 rounded bg-accent text-white text-sm hover:bg-accent-hover font-body">Add Passcode</button>
             </form>
@@ -644,7 +648,7 @@ export default function LockDetailPage() {
                   <div>
                     <span className="text-foreground font-mono text-sm">{p.passcode}</span>
                     <span className="text-text-muted text-xs ml-2 font-body">
-                      {p.type === 1 ? "Permanent" : p.type === 2 ? "Timed" : p.type === 3 ? "Cyclic" : "Other"}
+                      {p.type === 2 ? "Permanent" : p.type === 3 ? "Period" : p.type === 1 ? "One-time" : `Type ${p.type}`}
                     </span>
                   </div>
                   <button onClick={() => handleDelPass(p.passcodeId)} className="text-error hover:text-error text-xs font-body">Delete</button>
