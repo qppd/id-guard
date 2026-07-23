@@ -382,3 +382,26 @@ export async function sendKey(
     remoteEnable: "1",
   }, accessToken);
 }
+
+// User registration (creates a TTLock account programmatically)
+export async function registerUser(
+  username: string,
+  password: string
+): Promise<{ username: string }> {
+  const md5 = md5hash(password);
+  const res = await fetch(`${BASE}/v3/user/register`, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      clientId: getClientId(),
+      clientSecret: getClientSecret(),
+      username,
+      password: md5,
+      date: makeDate(),
+    }),
+  });
+
+  const data = await res.json();
+  if (!data.username) throw new Error(data.errmsg || "User registration failed");
+  return { username: data.username };
+}

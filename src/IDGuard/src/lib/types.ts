@@ -115,6 +115,10 @@ export interface TokenResponse {
   scope: string;
 }
 
+export interface RegisterUserResponse {
+  username: string;
+}
+
 // API response wrappers
 export interface ApiResponse<T = unknown> {
   ok: boolean;
