@@ -96,14 +96,16 @@ export default function KeysPage() {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [createUser, setCreateUser] = useState(false);
+  const [sendLinkEmail, setSendLinkEmail] = useState(false);
   const [sending, setSending] = useState(false);
   const [sendError, setSendError] = useState("");
+  const [sendSuccess, setSendSuccess] = useState("");
 
   // Per-key action state
   const [periodKeyId, setPeriodKeyId] = useState<number | null>(null);
   const [periodValues, setPeriodValues] = useState<PeriodValues>({ startDate: "", endDate: "" });
   const [busyAction, setBusyAction] = useState("");
-  const [actionErrors, setActionErrors] = useState<{ [key: number]: string }>({});
+  const [actionErrors, setActionErrors] = useState<{ [key: string | number]: string }>({});
   const [unlockLinks, setUnlockLinks] = useState<{ [key: number]: string }>({});
   const [remoteToggles, setRemoteToggles] = useState<Record<number, boolean>>({});
 
@@ -130,6 +132,7 @@ export default function KeysPage() {
     e.preventDefault();
     setSending(true);
     setSendError("");
+    setSendSuccess("");
 
     const sd = startDate ? new Date(startDate).getTime() : Date.now();
     const ed = endDate
@@ -148,10 +151,22 @@ export default function KeysPage() {
           startDate: sd,
           endDate: ed,
           createUser: createUser ? 1 : undefined,
+          sendUnlockLinkEmail: sendLinkEmail || undefined,
         }),
       });
-      const result: ApiResponse<unknown> = await res.json();
+      const result: ApiResponse<unknown & { _email?: { sent: boolean; reason?: string }; _linkEmail?: { sent: boolean; reason?: string } }> = await res.json();
       if (!result.ok) throw new Error(result.error || "Failed to send key");
+
+      // Build success message with email status
+      const msgs: string[] = ["eKey sent successfully."];
+      const emailInfo = result.data?._email;
+      const linkEmailInfo = result.data?._linkEmail;
+      if (emailInfo?.sent) msgs.push("eKey notification email sent.");
+      else if (emailInfo && !emailInfo.sent) msgs.push(`Email: ${emailInfo.reason}`);
+      if (linkEmailInfo?.sent) msgs.push("Unlock link emailed.");
+      else if (linkEmailInfo && !linkEmailInfo.sent && linkEmailInfo.reason !== "not requested") msgs.push(`Unlock link email: ${linkEmailInfo.reason}`);
+
+      setSendSuccess(msgs.join(" "));
       setShowForm(false);
       setLockId("");
       setReceiver("");
@@ -159,6 +174,7 @@ export default function KeysPage() {
       setStartDate("");
       setEndDate("");
       setCreateUser(false);
+      setSendLinkEmail(false);
       await mutate();
     } catch (err) {
       setSendError(err instanceof Error ? err.message : "Failed to send key");
@@ -278,6 +294,50 @@ export default function KeysPage() {
       setUnlockLinks((cur) => ({ ...cur, [keyId]: link }));
     } catch (err) {
       setKeyError(keyId, err instanceof Error ? err.message : "Failed to get unlock link");
+    } finally {
+      setBusyAction("");
+    }
+  };
+
+  // --- Email Unlock Link to recipient ---
+  const handleEmailLink = async (key: KeyData) => {
+    const actionId = `${key.keyId}-emailLink`;
+    setBusyAction(actionId);
+    setKeyError(key.keyId, "");
+
+    try {
+      const res = await fetch("/api/keys", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "emailUnlockLink",
+          keyId: key.keyId,
+          receiverUsername: key.username || key.senderUsername || "",
+          keyName: key.keyName || key.lockName || `Lock #${key.lockId}`,
+          lockId: key.lockId,
+        }),
+      });
+      const result: ApiResponse<{ link?: string; _email?: { sent: boolean; reason?: string } }> = await res.json();
+      if (!result.ok) throw new Error(result.error || "Failed to email unlock link");
+
+      // Also cache the link if returned
+      const link = result.data?.link;
+      if (link) setUnlockLinks((cur) => ({ ...cur, [key.keyId]: link }));
+
+      const emailInfo = result.data?._email;
+      if (emailInfo?.sent) {
+        setKeyError(key.keyId, "");
+        setActionErrors((cur) => ({ ...cur, [key.keyId]: "" }));
+        // Use a temporary success indicator
+        setActionErrors((cur) => ({ ...cur, [`_ok_${key.keyId}`]: "Unlock link emailed successfully!" }));
+        setTimeout(() => setActionErrors((cur) => {
+          const next = { ...cur }; delete next[`_ok_${key.keyId}`]; return next;
+        }), 5000);
+      } else {
+        throw new Error(emailInfo?.reason || "Email failed to send");
+      }
+    } catch (err) {
+      setKeyError(key.keyId, err instanceof Error ? err.message : "Failed to email unlock link");
     } finally {
       setBusyAction("");
     }
@@ -432,9 +492,10 @@ export default function KeysPage() {
             </div>
           </div>
           {sendError && <p className="text-error text-xs">{sendError}</p>}
-          <div className="flex items-center gap-4">
+          {sendSuccess && <p className="text-success text-xs">{sendSuccess}</p>}
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3">
             <label className="flex items-center gap-2 cursor-pointer text-xs font-body">
-              <span className="text-text-secondary">Auto-create account if unregistered</span>
+              <span className="text-text-secondary">Auto-create account</span>
               <button
                 type="button"
                 onClick={() => setCreateUser(!createUser)}
@@ -447,7 +508,21 @@ export default function KeysPage() {
                 }`} />
               </button>
             </label>
-            <button type="submit" disabled={sending} className="px-4 py-1.5 rounded bg-accent text-white text-sm hover:bg-accent-hover disabled:opacity-50 transition-colors font-body">
+            <label className="flex items-center gap-2 cursor-pointer text-xs font-body">
+              <span className="text-text-secondary">Email unlock link</span>
+              <button
+                type="button"
+                onClick={() => setSendLinkEmail(!sendLinkEmail)}
+                className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
+                  sendLinkEmail ? "bg-accent" : "bg-border-card"
+                }`}
+              >
+                <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
+                  sendLinkEmail ? "translate-x-[18px]" : "translate-x-[3px]"
+                }`} />
+              </button>
+            </label>
+            <button type="submit" disabled={sending} className="px-4 py-1.5 rounded bg-accent text-white text-sm hover:bg-accent-hover disabled:opacity-50 transition-colors font-body sm:ml-auto">
               {sending ? "Sending..." : "Send Key"}
             </button>
           </div>
@@ -635,6 +710,11 @@ export default function KeysPage() {
                 <button onClick={() => handleGetLink(key.keyId)} disabled={Boolean(busyAction)} className={btnAccent}>
                   {busyAction === `${key.keyId}-getUnlockLink` ? "Getting..." : hasLink ? "Refresh Link" : "Get Link"}
                 </button>
+                {key.username && (
+                  <button onClick={() => handleEmailLink(key)} disabled={Boolean(busyAction)} className={btnAccent}>
+                    {busyAction === `${key.keyId}-emailLink` ? "Sending..." : "Email Link"}
+                  </button>
+                )}
                 <button onClick={() => handleKeyAction(key, "delete")} disabled={Boolean(busyAction)} className={btnDanger}>
                   {busyAction === `${key.keyId}-delete` ? "Deleting..." : "Delete"}
                 </button>
@@ -669,9 +749,12 @@ export default function KeysPage() {
                 </form>
               )}
 
-              {/* Action error */}
+              {/* Action error / success */}
               {actionErrors[key.keyId] && (
                 <p className="mt-2 text-error text-xs font-body">{actionErrors[key.keyId]}</p>
+              )}
+              {actionErrors[`_ok_${key.keyId}`] && (
+                <p className="mt-2 text-success text-xs font-body">{actionErrors[`_ok_${key.keyId}`]}</p>
               )}
             </div>
           );
