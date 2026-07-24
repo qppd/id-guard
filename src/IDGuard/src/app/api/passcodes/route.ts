@@ -16,7 +16,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const { action, lockId, passcode, type, startDate, endDate, passcodeId } = await req.json();
+  const { action, lockId, passcode, type, startDate, endDate, passcodeId, passcodeName } = await req.json();
 
   const result = await callWithAuth(async (token) => {
     const { addPasscode, deletePasscode, updatePasscode } = await import("@/lib/ttlock");
@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
       return deletePasscode(token, lockId, passcodeId);
     }
     if (action === "update") {
-      return updatePasscode(token, lockId, passcodeId, passcode, type, startDate, endDate);
+      return updatePasscode(token, lockId, passcodeId, passcode || undefined, passcodeName || undefined, startDate, endDate);
     }
     throw new Error("Unknown action");
   });

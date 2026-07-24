@@ -454,18 +454,18 @@ export async function updatePasscode(
   accessToken: string,
   lockId: number,
   passcodeId: number,
-  passcode: string,
-  type: number,
+  passcode?: string,
+  passcodeName?: string,
   startDate?: number,
   endDate?: number
 ) {
   const params: { [key: string]: string } = {
     lockId: String(lockId),
-    passcodeId: String(passcodeId),
-    keyboardPwd: passcode,
-    keyboardPwdType: String(type),
+    keyboardPwdId: String(passcodeId),
     changeType: "2",
   };
+  if (passcode) params.newKeyboardPwd = passcode;
+  if (passcodeName) params.keyboardPwdName = passcodeName;
   if (startDate) params.startDate = String(startDate);
   if (endDate) params.endDate = String(endDate);
   return apiPost<{ errcode: number; errmsg: string }>(

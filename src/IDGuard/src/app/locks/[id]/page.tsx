@@ -113,11 +113,6 @@ export default function LockDetailPage() {
     fetcher
   );
 
-  const { data: configRes, mutate: refreshConfig } = useSWR<{ ok: boolean; data: { [key: string]: unknown } }>(
-    isAuthenticated ? `/api/locks/config?lockId=${lockId}` : null,
-    fetcher
-  );
-
   const { data: workingModeRes, mutate: refreshWorkingMode } = useSWR<{ ok: boolean; data: { workingMode: number; cyclicConfig?: string } }>(
     isAuthenticated ? `/api/locks/working-mode?lockId=${lockId}` : null,
     fetcher
@@ -145,7 +140,6 @@ export default function LockDetailPage() {
   const [recordsExpanded, setRecordsExpanded] = useState(false);
   const [icExpanded, setIcExpanded] = useState(false);
   const [fpExpanded, setFpExpanded] = useState(false);
-  const [configExpanded, setConfigExpanded] = useState(false);
   const [workingModeExpanded, setWorkingModeExpanded] = useState(false);
   const [passageModeExpanded, setPassageModeExpanded] = useState(false);
   const [lockTimeExpanded, setLockTimeExpanded] = useState(false);
@@ -159,7 +153,9 @@ export default function LockDetailPage() {
   // Passcode edit form state
   const [editPassId, setEditPassId] = useState<number | null>(null);
   const [editPass, setEditPass] = useState("");
-  const [editPassType, setEditPassType] = useState(2);
+  const [editPassName, setEditPassName] = useState("");
+  const [editPassStartDate, setEditPassStartDate] = useState("");
+  const [editPassEndDate, setEditPassEndDate] = useState("");
 
   // Batch delete records state
   const [selectedRecords, setSelectedRecords] = useState<Set<number>>(new Set());
@@ -184,10 +180,6 @@ export default function LockDetailPage() {
   // Passage mode config
   const [passageModeConfig, setPassageModeConfig] = useState(2);
 
-  // Lock config write form
-  const [configKey, setConfigKey] = useState("");
-  const [configValue, setConfigValue] = useState("");
-
   useEffect(() => {
     if (!authLoading && !isAuthenticated) router.replace("/login");
   }, [isAuthenticated, authLoading, router]);
@@ -197,8 +189,13 @@ export default function LockDetailPage() {
 
   const detail = detailRes?.data;
   const passcodes = passRes?.data ?? [];
-  const gateways = gwByLockRes?.data ?? gwRes?.data ?? [];
-  const gwById = gateways;
+  // Merge isOnline from main gateway list into by-lock list (listByLock doesn't return isOnline)
+  const gwByLock = gwByLockRes?.data ?? [];
+  const gwAll = gwRes?.data ?? [];
+  const gwOnlineMap = new Map(gwAll.map((g: { [key: string]: unknown }) => [g.gatewayId, g.isOnline]));
+  const gateways = gwByLock.length > 0
+    ? gwByLock.map((g: { [key: string]: unknown }) => ({ ...g, isOnline: gwOnlineMap.get(g.gatewayId) ?? g.isOnline }))
+    : gwAll;
   const records = recRes?.data ?? [];
   const icCards = icRes?.data ?? [];
   const fingerprints = fpRes?.data ?? [];
@@ -252,19 +249,24 @@ export default function LockDetailPage() {
     e.preventDefault();
     setMsg(""); setErr("");
     try {
+      const body: { [key: string]: unknown } = { action: "update", lockId, passcodeId };
+      if (editPass) body.passcode = editPass;
+      if (editPassName) body.passcodeName = editPassName;
+      if (editPassStartDate) body.startDate = new Date(editPassStartDate).getTime();
+      if (editPassEndDate) body.endDate = new Date(editPassEndDate).getTime();
       const res = await fetch("/api/passcodes", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          action: "update", lockId, passcodeId,
-          passcode: editPass, type: editPassType,
-          startDate: Date.now(),
-        }),
+        body: JSON.stringify(body),
       });
       const data = await res.json();
       if (!data.ok) throw new Error(data.error);
       setMsg("Passcode updated!");
       setEditPassId(null);
+      setEditPass("");
+      setEditPassName("");
+      setEditPassStartDate("");
+      setEditPassEndDate("");
       refreshPass();
     } catch (e) {
       setErr(e instanceof Error ? e.message : "Failed");
@@ -273,8 +275,10 @@ export default function LockDetailPage() {
 
   const handleStartEdit = (p: Passcode) => {
     setEditPassId(p.keyboardPwdId);
-    setEditPass(p.keyboardPwd);
-    setEditPassType(p.keyboardPwdType);
+    setEditPass("");
+    setEditPassName(p.nickName || "");
+    setEditPassStartDate(p.startDate ? new Date(p.startDate).toISOString().slice(0, 16) : "");
+    setEditPassEndDate(p.endDate ? new Date(p.endDate).toISOString().slice(0, 16) : "");
   };
 
   const handleDeleteSelectedRecords = async () => {
@@ -536,26 +540,6 @@ export default function LockDetailPage() {
     }
   };
 
-  const handleWriteConfig = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setMsg(""); setErr("");
-    try {
-      const res = await fetch("/api/locks/config", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ lockId, [configKey]: configValue }),
-      });
-      const data = await res.json();
-      if (!data.ok) throw new Error(data.error);
-      setMsg("Config updated!");
-      setConfigKey("");
-      setConfigValue("");
-      refreshConfig();
-    } catch (e) {
-      setErr(e instanceof Error ? e.message : "Failed");
-    }
-  };
-
   const batteryColor = battery != null
     ? battery > 50 ? "text-success" : battery > 20 ? "text-warning" : "text-error"
     : "text-text-muted";
@@ -737,13 +721,19 @@ export default function LockDetailPage() {
                     </div>
                   </div>
                   {editPassId === p.keyboardPwdId && (
-                    <form onSubmit={(e) => handleUpdatePass(e, p.keyboardPwdId)} className="mt-2 p-2 bg-card border border-border-card rounded space-y-2">
-                      <input type="text" value={editPass} onChange={(e) => setEditPass(e.target.value.replace(/\D/g, ""))} maxLength={9} minLength={4} required className="w-full px-2 py-1 rounded bg-card border border-border-card text-foreground text-sm focus:outline-none focus:border-focus-ring" />
-                      <select value={editPassType} onChange={(e) => setEditPassType(Number(e.target.value))} className="w-full px-2 py-1 rounded bg-card border border-border-card text-foreground text-sm focus:outline-none focus:border-focus-ring">
-                        <option value={2}>Permanent</option>
-                        <option value={3}>Period</option>
-                        <option value={1}>One-time</option>
-                      </select>
+                    <form onSubmit={(e) => handleUpdatePass(e, p.keyboardPwdId)} className="mt-2 p-3 bg-card border border-border-card rounded space-y-2">
+                      <input type="text" placeholder="New passcode (leave blank to keep)" value={editPass} onChange={(e) => setEditPass(e.target.value.replace(/\D/g, ""))} maxLength={9} className="w-full px-2 py-1.5 rounded bg-card border border-border-card text-foreground text-sm focus:outline-none focus:border-focus-ring" />
+                      <input type="text" placeholder="Passcode name" value={editPassName} onChange={(e) => setEditPassName(e.target.value)} className="w-full px-2 py-1.5 rounded bg-card border border-border-card text-foreground text-sm focus:outline-none focus:border-focus-ring" />
+                      <div className="grid grid-cols-2 gap-2">
+                        <label className="text-xs text-text-secondary font-body">
+                          Start
+                          <input type="datetime-local" value={editPassStartDate} onChange={(e) => setEditPassStartDate(e.target.value)} className="mt-1 w-full px-2 py-1.5 rounded bg-card border border-border-card text-foreground text-sm focus:outline-none focus:border-focus-ring" />
+                        </label>
+                        <label className="text-xs text-text-secondary font-body">
+                          End
+                          <input type="datetime-local" value={editPassEndDate} onChange={(e) => setEditPassEndDate(e.target.value)} className="mt-1 w-full px-2 py-1.5 rounded bg-card border border-border-card text-foreground text-sm focus:outline-none focus:border-focus-ring" />
+                        </label>
+                      </div>
                       <div className="flex gap-2">
                         <button type="submit" className="px-3 py-1 rounded bg-accent text-white text-xs hover:bg-accent-hover font-body">Save</button>
                         <button type="button" onClick={() => setEditPassId(null)} className="px-3 py-1 rounded bg-alt text-text-secondary text-xs border border-border-card font-body">Cancel</button>
@@ -815,7 +805,7 @@ export default function LockDetailPage() {
         {/* Gateways */}
         <div className="card-compact bg-card border border-border-card rounded-lg p-4 shadow-card">
           <h2 className="text-lg font-heading font-semibold text-accent mb-3">Gateways</h2>
-          {gwById.length === 0 ? (
+          {gateways.length === 0 ? (
             <p className="text-text-muted text-sm text-center py-4 font-body">No gateways</p>
           ) : (
             <div className="space-y-2 max-h-64 overflow-y-auto">
@@ -966,51 +956,6 @@ export default function LockDetailPage() {
         )}
       </div>
 
-      {/* Lock Config */}
-      <div className="card-compact bg-card border border-border-card rounded-lg p-4 mt-4 sm:mt-6 shadow-card">
-        <div className="flex items-center justify-between">
-          <button onClick={() => setConfigExpanded(!configExpanded)} className="flex items-center justify-between w-full">
-            <h2 className="text-base sm:text-lg font-heading font-semibold text-accent">Lock Config</h2>
-            <span className="text-text-muted">{configExpanded ? "\u25B2" : "\u25BC"}</span>
-          </button>
-        </div>
-        {configExpanded && (
-          <div className="mt-3">
-            {configRes?.data && Object.keys(configRes.data).filter(k => k !== "errcode").length > 0 ? (
-              <div className="space-y-1 mb-3">
-                {Object.entries(configRes.data).filter(([k]) => k !== "errcode").map(([key, val]) => (
-                  <div key={key} className="flex items-center justify-between bg-alt rounded px-3 py-1.5 text-sm">
-                    <span className="text-text-muted font-body">{key}</span>
-                    <span className="text-foreground font-body">{String(val)}</span>
-                  </div>
-                ))}
-              </div>
-            ) : configRes?.data ? (
-              <p className="text-text-muted text-sm text-center py-2 font-body">No config data</p>
-            ) : (
-              <p className="text-text-muted text-sm text-center py-2 font-body">Loading...</p>
-            )}
-            {/* Config write form */}
-            <form onSubmit={handleWriteConfig} className="flex flex-col sm:flex-row gap-2 pt-3 border-t border-border-card">
-              <input
-                placeholder="Config key (e.g. deleteLockEnable)"
-                value={configKey}
-                onChange={(e) => setConfigKey(e.target.value)}
-                className="flex-1 px-3 py-2 rounded bg-card border border-border-card text-foreground text-sm focus:outline-none focus:border-focus-ring"
-                required
-              />
-              <input
-                placeholder="Value (e.g. 1 or 0)"
-                value={configValue}
-                onChange={(e) => setConfigValue(e.target.value)}
-                className="w-full sm:w-32 px-3 py-2 rounded bg-card border border-border-card text-foreground text-sm focus:outline-none focus:border-focus-ring"
-                required
-              />
-              <button type="submit" className="px-4 py-2 rounded bg-accent text-white text-xs hover:bg-accent-hover font-body shrink-0">Set Config</button>
-            </form>
-          </div>
-        )}
-      </div>
     </div>
   );
 }
