@@ -71,12 +71,24 @@ function fmtDateShort(ts?: number): string {
   });
 }
 
+interface LockItem {
+  lockId: number;
+  lockName: string;
+  lockAlias: string;
+}
+
 export default function KeysPage() {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   const { settings } = useTheme();
   const router = useRouter();
 
-  const [filterLockId, setFilterLockId] = useState("");
+  // Fetch locks for dropdowns
+  const { data: locksData } = useSWR<ApiResponse<LockItem[]>>(
+    isAuthenticated ? "/api/locks" : null,
+    fetcher
+  );
+  const locks = locksData?.data ?? [];
+
   const [activeLockId, setActiveLockId] = useState("");
   const keysUrl = activeLockId
     ? `/api/keys/list-by-lock?lockId=${encodeURIComponent(activeLockId)}`
@@ -401,19 +413,6 @@ export default function KeysPage() {
     navigator.clipboard.writeText(link);
   };
 
-  // --- Filter ---
-  const handleFilter = (e: React.FormEvent) => {
-    e.preventDefault();
-    const normalizedLockId = filterLockId.trim();
-    if (!normalizedLockId) return;
-    setActiveLockId(normalizedLockId);
-  };
-
-  const showAllKeys = () => {
-    setActiveLockId("");
-    setFilterLockId("");
-  };
-
   // --- Loading / Auth ---
   if (authLoading) {
     return (
@@ -450,34 +449,39 @@ export default function KeysPage() {
         </button>
       </div>
 
-      {/* Filter */}
-      <form onSubmit={handleFilter} className="card-compact bg-card border border-border-card rounded-lg p-3 sm:p-4 mb-4 flex flex-col sm:flex-row sm:items-center gap-2 shadow-card">
+      {/* Filter by lock dropdown */}
+      <div className="card-compact bg-card border border-border-card rounded-lg p-3 sm:p-4 mb-4 flex flex-col sm:flex-row sm:items-center gap-2 shadow-card">
         <label htmlFor="key-lock-filter" className="text-sm text-foreground font-heading font-semibold sm:mr-1">
-          List keys by lock
+          Filter by lock
         </label>
-        <input
+        <select
           id="key-lock-filter"
-          type="number"
-          min="1"
-          placeholder="Lock ID"
-          value={filterLockId}
-          onChange={(e) => setFilterLockId(e.target.value)}
-          className="w-full sm:w-48 px-3 py-2 rounded bg-card border border-border-card text-foreground text-sm placeholder-text-muted focus:outline-none focus:border-focus-ring"
-        />
-        <button type="submit" disabled={!filterLockId.trim()} className="px-3 py-2 rounded bg-accent text-white text-xs hover:bg-accent-hover disabled:opacity-50 transition-colors font-body">
-          Filter
-        </button>
-        <button type="button" onClick={showAllKeys} disabled={!activeLockId} className="px-3 py-2 rounded bg-alt border border-border-card text-text-secondary text-xs hover:text-foreground disabled:opacity-50 transition-colors font-body">
-          All Keys
-        </button>
-      </form>
+          value={activeLockId}
+          onChange={(e) => setActiveLockId(e.target.value)}
+          className="w-full sm:w-64 px-3 py-2 rounded bg-card border border-border-card text-foreground text-sm focus:outline-none focus:border-focus-ring"
+        >
+          <option value="">All Locks</option>
+          {locks.map((lock) => (
+            <option key={lock.lockId} value={String(lock.lockId)}>
+              {lock.lockAlias || lock.lockName || `Lock #${lock.lockId}`} (#{lock.lockId})
+            </option>
+          ))}
+        </select>
+      </div>
 
       {/* Share Key Form */}
       {showForm && (
         <form onSubmit={handleSendKey} className="card-compact bg-card border border-border-card rounded-lg p-4 mb-4 sm:mb-6 space-y-3 shadow-card">
           <h3 className="text-accent font-heading font-semibold text-sm">Share eKey</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <input type="number" placeholder="Lock ID" value={lockId} onChange={(e) => setLockId(e.target.value)} className="w-full px-3 py-2 rounded bg-card border border-border-card text-foreground text-sm placeholder-text-muted focus:outline-none focus:border-focus-ring" required />
+            <select value={lockId} onChange={(e) => setLockId(e.target.value)} className="w-full px-3 py-2 rounded bg-card border border-border-card text-foreground text-sm focus:outline-none focus:border-focus-ring" required>
+              <option value="">Select Lock</option>
+              {locks.map((lock) => (
+                <option key={lock.lockId} value={String(lock.lockId)}>
+                  {lock.lockAlias || lock.lockName || `Lock #${lock.lockId}`} (#{lock.lockId})
+                </option>
+              ))}
+            </select>
             <input type="text" placeholder="Recipient email / TTLock username" value={receiver} onChange={(e) => setReceiver(e.target.value)} className="w-full px-3 py-2 rounded bg-card border border-border-card text-foreground text-sm placeholder-text-muted focus:outline-none focus:border-focus-ring" required />
             <input type="text" placeholder="Key name (e.g. Key for Juan)" value={keyName} onChange={(e) => setKeyName(e.target.value)} className="w-full px-3 py-2 rounded bg-card border border-border-card text-foreground text-sm placeholder-text-muted focus:outline-none focus:border-focus-ring" />
             <div className="grid grid-cols-2 gap-2">
