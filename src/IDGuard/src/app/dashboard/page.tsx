@@ -17,13 +17,13 @@ export default function DashboardPage() {
   const { settings } = useTheme();
   const router = useRouter();
 
-  const { data: gwData } = useSWR<{ ok: boolean; data: { list: Record<string, unknown>[] } }>(
+  const { data: gwData } = useSWR<{ ok: boolean; data: Record<string, unknown>[] }>(
     isAuthenticated ? "/api/gateways" : null,
     fetcher,
     { refreshInterval: settings.refreshInterval > 0 ? settings.refreshInterval * 1000 : undefined }
   );
 
-  const gateways = gwData?.data?.list ?? [];
+  const gateways = gwData?.data ?? [];
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
