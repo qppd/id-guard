@@ -13,3 +13,16 @@ export async function GET(req: NextRequest) {
   if (!result.ok) return result.response;
   return NextResponse.json({ ok: true, data: result.data });
 }
+
+export async function POST(req: NextRequest) {
+  const { lockId, electricQuantity } = await req.json();
+  if (!lockId || electricQuantity == null) {
+    return NextResponse.json({ ok: false, error: "lockId and electricQuantity required" }, { status: 400 });
+  }
+  const result = await callWithAuth(async (token) => {
+    const { uploadLockBattery } = await import("@/lib/ttlock");
+    return uploadLockBattery(token, lockId, electricQuantity);
+  });
+  if (!result.ok) return result.response;
+  return NextResponse.json({ ok: true, data: result.data });
+}

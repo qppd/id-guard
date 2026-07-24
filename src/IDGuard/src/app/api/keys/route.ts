@@ -11,7 +11,7 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
-  const { action, keyId, lockId, receiverUsername, keyName, startDate, endDate, remoteEnable } = await req.json();
+  const { action, keyId, lockId, receiverUsername, keyName, startDate, endDate, remoteEnable, createUser } = await req.json();
 
   const result = await callWithAuth(async (token) => {
     const {
@@ -38,7 +38,8 @@ export async function POST(req: NextRequest) {
           receiverUsername,
           keyName || "Shared Key",
           sd,
-          ed
+          ed,
+          createUser
         );
 
         // Try to send email notification (non-blocking)

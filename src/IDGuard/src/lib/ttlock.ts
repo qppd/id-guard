@@ -679,18 +679,21 @@ export async function sendKey(
   receiverUsername: string,
   keyName: string,
   startDate: number,
-  endDate: number
+  endDate: number,
+  createUser?: 1 | 2
 ) {
+  const params: { [key: string]: string } = {
+    lockId: String(lockId),
+    receiverUsername,
+    keyName,
+    startDate: String(startDate),
+    endDate: String(endDate),
+    remoteEnable: "1",
+  };
+  if (createUser) params.createUser = String(createUser);
   return apiPost<{ keyId: number }>(
     "/v3/key/send",
-    {
-      lockId: String(lockId),
-      receiverUsername,
-      keyName,
-      startDate: String(startDate),
-      endDate: String(endDate),
-      remoteEnable: "1",
-    },
+    params,
     accessToken
   );
 }

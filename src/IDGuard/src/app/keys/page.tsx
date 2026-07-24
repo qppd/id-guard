@@ -95,6 +95,7 @@ export default function KeysPage() {
   const [keyName, setKeyName] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  const [createUser, setCreateUser] = useState(false);
   const [sending, setSending] = useState(false);
   const [sendError, setSendError] = useState("");
 
@@ -146,6 +147,7 @@ export default function KeysPage() {
           keyName: keyName || `Key for ${receiver}`,
           startDate: sd,
           endDate: ed,
+          createUser: createUser ? 1 : undefined,
         }),
       });
       const result: ApiResponse<unknown> = await res.json();
@@ -156,6 +158,7 @@ export default function KeysPage() {
       setKeyName("");
       setStartDate("");
       setEndDate("");
+      setCreateUser(false);
       await mutate();
     } catch (err) {
       setSendError(err instanceof Error ? err.message : "Failed to send key");
@@ -429,9 +432,25 @@ export default function KeysPage() {
             </div>
           </div>
           {sendError && <p className="text-error text-xs">{sendError}</p>}
-          <button type="submit" disabled={sending} className="px-4 py-1.5 rounded bg-accent text-white text-sm hover:bg-accent-hover disabled:opacity-50 transition-colors font-body">
-            {sending ? "Sending..." : "Send Key"}
-          </button>
+          <div className="flex items-center gap-4">
+            <label className="flex items-center gap-2 cursor-pointer text-xs font-body">
+              <span className="text-text-secondary">Auto-create account if unregistered</span>
+              <button
+                type="button"
+                onClick={() => setCreateUser(!createUser)}
+                className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
+                  createUser ? "bg-accent" : "bg-border-card"
+                }`}
+              >
+                <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
+                  createUser ? "translate-x-[18px]" : "translate-x-[3px]"
+                }`} />
+              </button>
+            </label>
+            <button type="submit" disabled={sending} className="px-4 py-1.5 rounded bg-accent text-white text-sm hover:bg-accent-hover disabled:opacity-50 transition-colors font-body">
+              {sending ? "Sending..." : "Send Key"}
+            </button>
+          </div>
         </form>
       )}
 

@@ -58,6 +58,7 @@ export default function LockDetailPage() {
   const { settings } = useTheme();
 
   // Data fetching
+  const [recordsPage, setRecordsPage] = useState(1);
   const { data: detailRes, mutate: refreshDetail } = useSWR<{ ok: boolean; data: LockDetail }>(
     isAuthenticated ? `/api/locks/${lockId}` : null,
     fetcher
@@ -69,7 +70,7 @@ export default function LockDetailPage() {
   );
 
   const { data: recRes, mutate: refreshRec } = useSWR<{ ok: boolean; data: LockRecord[]; total: number }>(
-    isAuthenticated ? `/api/records?lockId=${lockId}` : null,
+    isAuthenticated ? `/api/records?lockId=${lockId}&page=${recordsPage}` : null,
     fetcher
   );
 
@@ -77,6 +78,18 @@ export default function LockDetailPage() {
     isAuthenticated ? `/api/gateways` : null,
     fetcher,
     { refreshInterval: settings.refreshInterval > 0 ? settings.refreshInterval * 1000 : undefined }
+  );
+
+  const { data: gwByLockRes } = useSWR<{ ok: boolean; data: Array<{ [key: string]: unknown }> }>(
+    isAuthenticated ? `/api/gateways-listByLock-${lockId}` : null,
+    async () => {
+      const res = await fetch("/api/gateways/listByLock", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ lockId }),
+      });
+      return res.json();
+    }
   );
 
   const { data: icRes, mutate: refreshIc } = useSWR<{ ok: boolean; data: { [key: string]: unknown }[] }>(
@@ -143,6 +156,14 @@ export default function LockDetailPage() {
   const [passType, setPassType] = useState(2);
   // IC card & Fingerprint add forms removed — requires Bluetooth APP SDK, not cloud API
 
+  // Passcode edit form state
+  const [editPassId, setEditPassId] = useState<number | null>(null);
+  const [editPass, setEditPass] = useState("");
+  const [editPassType, setEditPassType] = useState(2);
+
+  // Batch delete records state
+  const [selectedRecords, setSelectedRecords] = useState<Set<number>>(new Set());
+
   // Rename form
   const [renameForm, setRenameForm] = useState(false);
   const [renameAlias, setRenameAlias] = useState("");
@@ -163,6 +184,10 @@ export default function LockDetailPage() {
   // Passage mode config
   const [passageModeConfig, setPassageModeConfig] = useState(2);
 
+  // Lock config write form
+  const [configKey, setConfigKey] = useState("");
+  const [configValue, setConfigValue] = useState("");
+
   useEffect(() => {
     if (!authLoading && !isAuthenticated) router.replace("/login");
   }, [isAuthenticated, authLoading, router]);
@@ -172,9 +197,9 @@ export default function LockDetailPage() {
 
   const detail = detailRes?.data;
   const passcodes = passRes?.data ?? [];
-  const gateways = gwRes?.data ?? [];
-  const records = recRes?.data ?? [];
+  const gateways = gwByLockRes?.data ?? gwRes?.data ?? [];
   const gwById = gateways;
+  const records = recRes?.data ?? [];
   const icCards = icRes?.data ?? [];
   const fingerprints = fpRes?.data ?? [];
   const battery = batteryRes?.data?.electricQuantity ?? detail?.electricQuantity;
@@ -221,6 +246,64 @@ export default function LockDetailPage() {
     } catch (e) {
       setErr(e instanceof Error ? e.message : "Failed");
     }
+  };
+
+  const handleUpdatePass = async (e: React.FormEvent, passcodeId: number) => {
+    e.preventDefault();
+    setMsg(""); setErr("");
+    try {
+      const res = await fetch("/api/passcodes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "update", lockId, passcodeId,
+          passcode: editPass, type: editPassType,
+          startDate: Date.now(),
+        }),
+      });
+      const data = await res.json();
+      if (!data.ok) throw new Error(data.error);
+      setMsg("Passcode updated!");
+      setEditPassId(null);
+      refreshPass();
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Failed");
+    }
+  };
+
+  const handleStartEdit = (p: Passcode) => {
+    setEditPassId(p.keyboardPwdId);
+    setEditPass(p.keyboardPwd);
+    setEditPassType(p.keyboardPwdType);
+  };
+
+  const handleDeleteSelectedRecords = async () => {
+    if (selectedRecords.size === 0) return;
+    if (!confirm(`Delete ${selectedRecords.size} selected record(s)?`)) return;
+    setMsg(""); setErr("");
+    try {
+      const res = await fetch("/api/records/delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ lockId, recordIdList: JSON.stringify([...selectedRecords]) }),
+      });
+      const data = await res.json();
+      if (!data.ok) throw new Error(data.error);
+      setMsg("Records deleted!");
+      setSelectedRecords(new Set());
+      refreshRec();
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Failed");
+    }
+  };
+
+  const toggleRecordSelection = (recordId: number) => {
+    setSelectedRecords((prev) => {
+      const next = new Set(prev);
+      if (next.has(recordId)) next.delete(recordId);
+      else next.add(recordId);
+      return next;
+    });
   };
 
   const handleCheckUpgrade = async () => {
@@ -436,6 +519,43 @@ export default function LockDetailPage() {
     }
   };
 
+  const handleUploadBattery = async () => {
+    setMsg(""); setErr("");
+    try {
+      const res = await fetch("/api/locks/battery", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ lockId, electricQuantity: battery }),
+      });
+      const data = await res.json();
+      if (!data.ok) throw new Error(data.error);
+      setMsg("Battery level uploaded!");
+      refreshBattery();
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Failed");
+    }
+  };
+
+  const handleWriteConfig = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setMsg(""); setErr("");
+    try {
+      const res = await fetch("/api/locks/config", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ lockId, [configKey]: configValue }),
+      });
+      const data = await res.json();
+      if (!data.ok) throw new Error(data.error);
+      setMsg("Config updated!");
+      setConfigKey("");
+      setConfigValue("");
+      refreshConfig();
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Failed");
+    }
+  };
+
   const batteryColor = battery != null
     ? battery > 50 ? "text-success" : battery > 20 ? "text-warning" : "text-error"
     : "text-text-muted";
@@ -504,6 +624,7 @@ export default function LockDetailPage() {
               {battery != null ? `${battery}%` : "..."}
             </span>
             <button onClick={() => refreshBattery()} className="text-text-muted hover:text-accent text-xs font-body">Refresh</button>
+            <button onClick={handleUploadBattery} className="text-text-muted hover:text-accent text-xs font-body">Upload</button>
           </div>
         </div>
         <div className="grid-detail-info mt-4 sm:mt-6 text-sm">
@@ -602,14 +723,33 @@ export default function LockDetailPage() {
           ) : (
             <div className="space-y-2 max-h-64 overflow-y-auto">
               {passcodes.map((p) => (
-                <div key={p.keyboardPwdId} className="flex items-center justify-between bg-alt rounded px-3 py-2">
-                  <div>
-                    <span className="text-foreground font-mono text-sm">{p.keyboardPwd}</span>
-                    <span className="text-text-muted text-xs ml-2 font-body">
-                      {p.keyboardPwdType === 2 ? "Permanent" : p.keyboardPwdType === 3 ? "Period" : p.keyboardPwdType === 1 ? "One-time" : `Type ${p.keyboardPwdType}`}
-                    </span>
+                <div key={p.keyboardPwdId}>
+                  <div className="flex items-center justify-between bg-alt rounded px-3 py-2">
+                    <div>
+                      <span className="text-foreground font-mono text-sm">{p.keyboardPwd}</span>
+                      <span className="text-text-muted text-xs ml-2 font-body">
+                        {p.keyboardPwdType === 2 ? "Permanent" : p.keyboardPwdType === 3 ? "Period" : p.keyboardPwdType === 1 ? "One-time" : `Type ${p.keyboardPwdType}`}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button onClick={() => handleStartEdit(p)} className="text-accent hover:text-accent text-xs font-body">Edit</button>
+                      <button onClick={() => handleDelPass(p.keyboardPwdId)} className="text-error hover:text-error text-xs font-body">Delete</button>
+                    </div>
                   </div>
-                  <button onClick={() => handleDelPass(p.keyboardPwdId)} className="text-error hover:text-error text-xs font-body">Delete</button>
+                  {editPassId === p.keyboardPwdId && (
+                    <form onSubmit={(e) => handleUpdatePass(e, p.keyboardPwdId)} className="mt-2 p-2 bg-card border border-border-card rounded space-y-2">
+                      <input type="text" value={editPass} onChange={(e) => setEditPass(e.target.value.replace(/\D/g, ""))} maxLength={9} minLength={4} required className="w-full px-2 py-1 rounded bg-card border border-border-card text-foreground text-sm focus:outline-none focus:border-focus-ring" />
+                      <select value={editPassType} onChange={(e) => setEditPassType(Number(e.target.value))} className="w-full px-2 py-1 rounded bg-card border border-border-card text-foreground text-sm focus:outline-none focus:border-focus-ring">
+                        <option value={2}>Permanent</option>
+                        <option value={3}>Period</option>
+                        <option value={1}>One-time</option>
+                      </select>
+                      <div className="flex gap-2">
+                        <button type="submit" className="px-3 py-1 rounded bg-accent text-white text-xs hover:bg-accent-hover font-body">Save</button>
+                        <button type="button" onClick={() => setEditPassId(null)} className="px-3 py-1 rounded bg-alt text-text-secondary text-xs border border-border-card font-body">Cancel</button>
+                      </div>
+                    </form>
+                  )}
                 </div>
               ))}
             </div>
@@ -758,57 +898,116 @@ export default function LockDetailPage() {
 
       {/* Unlock Records */}
       <div className="card-compact bg-card border border-border-card rounded-lg p-4 mt-4 sm:mt-6 shadow-card">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between flex-wrap gap-2">
           <button onClick={() => setRecordsExpanded(!recordsExpanded)} className="flex items-center gap-2">
             <h2 className="text-base sm:text-lg font-heading font-semibold text-accent">Unlock Records ({recRes?.total ?? 0})</h2>
             <span className="text-text-muted">{recordsExpanded ? "\u25B2" : "\u25BC"}</span>
           </button>
-          <button onClick={handleClearRecords} className="text-error hover:text-error text-xs font-body">Clear All</button>
+          <div className="flex items-center gap-2">
+            {selectedRecords.size > 0 && (
+              <button onClick={handleDeleteSelectedRecords} className="text-error hover:text-error text-xs font-body">Delete {selectedRecords.size} selected</button>
+            )}
+            <button onClick={handleClearRecords} className="text-error hover:text-error text-xs font-body">Clear All</button>
+          </div>
         </div>
         {recordsExpanded && (
-          <div className="mt-3 space-y-1 max-h-96 overflow-y-auto">
-            {records.length === 0 ? (
-              <p className="text-text-muted text-sm text-center py-4 font-body">No records</p>
-            ) : (
-              records.map((r) => (
-                <div key={r.recordId} className="flex items-center justify-between bg-alt rounded px-3 py-2 text-sm">
-                  <div className="flex items-center gap-3 min-w-0 flex-1">
-                    <span className={`shrink-0 ${r.success ? "text-success" : "text-error"}`}>
-                      {r.success ? "Success" : "Failed"}
-                    </span>
-                    <span className="text-text-secondary font-body truncate">
-                      {recordTypeLabel[r.recordType] || `Type ${r.recordType}`}
-                    </span>
-                    {r.username && (
-                      <span className="text-text-muted text-xs font-body truncate">{r.username}</span>
-                    )}
+          <div className="mt-3">
+            <div className="space-y-1 max-h-96 overflow-y-auto">
+              {records.length === 0 ? (
+                <p className="text-text-muted text-sm text-center py-4 font-body">No records</p>
+              ) : (
+                records.map((r) => (
+                  <div key={r.recordId} className="flex items-center justify-between bg-alt rounded px-3 py-2 text-sm">
+                    <div className="flex items-center gap-2 min-w-0 flex-1">
+                      <input
+                        type="checkbox"
+                        checked={selectedRecords.has(r.recordId)}
+                        onChange={() => toggleRecordSelection(r.recordId)}
+                        className="shrink-0 accent-accent"
+                      />
+                      <span className={`shrink-0 ${r.success ? "text-success" : "text-error"}`}>
+                        {r.success ? "Success" : "Failed"}
+                      </span>
+                      <span className="text-text-secondary font-body truncate">
+                        {recordTypeLabel[r.recordType] || `Type ${r.recordType}`}
+                      </span>
+                      {r.username && (
+                        <span className="text-text-muted text-xs font-body truncate">{r.username}</span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-3 shrink-0">
+                      <span className="text-text-muted text-xs font-body">
+                        {r.lockDate ? new Date(r.lockDate).toLocaleString() : "—"}
+                      </span>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-3 shrink-0">
-                    <span className="text-text-muted text-xs font-body">
-                      {r.lockDate ? new Date(r.lockDate).toLocaleString() : "—"}
-                    </span>
-                  </div>
-                </div>
-              ))
-            )}
+                ))
+              )}
+            </div>
+            {/* Pagination */}
+            <div className="flex items-center justify-center gap-3 mt-3 pt-2 border-t border-border-card">
+              <button
+                onClick={() => setRecordsPage((p) => Math.max(1, p - 1))}
+                disabled={recordsPage <= 1}
+                className="px-3 py-1 rounded bg-alt text-text-secondary text-xs border border-border-card hover:text-foreground disabled:opacity-50 font-body"
+              >
+                Previous
+              </button>
+              <span className="text-xs text-text-muted font-body">Page {recordsPage}</span>
+              <button
+                onClick={() => setRecordsPage((p) => p + 1)}
+                disabled={records.length < 50}
+                className="px-3 py-1 rounded bg-alt text-text-secondary text-xs border border-border-card hover:text-foreground disabled:opacity-50 font-body"
+              >
+                Next
+              </button>
+            </div>
           </div>
         )}
       </div>
 
       {/* Lock Config */}
       <div className="card-compact bg-card border border-border-card rounded-lg p-4 mt-4 sm:mt-6 shadow-card">
-        <button onClick={() => setConfigExpanded(!configExpanded)} className="flex items-center justify-between w-full">
-          <h2 className="text-base sm:text-lg font-heading font-semibold text-accent">Lock Config</h2>
-          <span className="text-text-muted">{configExpanded ? "\u25B2" : "\u25BC"}</span>
-        </button>
-        {configExpanded && configRes?.data && (
-          <div className="mt-3 space-y-1">
-            {Object.entries(configRes.data).filter(([k]) => k !== "errcode").map(([key, val]) => (
-              <div key={key} className="flex items-center justify-between bg-alt rounded px-3 py-1.5 text-sm">
-                <span className="text-text-muted font-body">{key}</span>
-                <span className="text-foreground font-body">{String(val)}</span>
+        <div className="flex items-center justify-between">
+          <button onClick={() => setConfigExpanded(!configExpanded)} className="flex items-center justify-between w-full">
+            <h2 className="text-base sm:text-lg font-heading font-semibold text-accent">Lock Config</h2>
+            <span className="text-text-muted">{configExpanded ? "\u25B2" : "\u25BC"}</span>
+          </button>
+        </div>
+        {configExpanded && (
+          <div className="mt-3">
+            {configRes?.data && Object.keys(configRes.data).filter(k => k !== "errcode").length > 0 ? (
+              <div className="space-y-1 mb-3">
+                {Object.entries(configRes.data).filter(([k]) => k !== "errcode").map(([key, val]) => (
+                  <div key={key} className="flex items-center justify-between bg-alt rounded px-3 py-1.5 text-sm">
+                    <span className="text-text-muted font-body">{key}</span>
+                    <span className="text-foreground font-body">{String(val)}</span>
+                  </div>
+                ))}
               </div>
-            ))}
+            ) : configRes?.data ? (
+              <p className="text-text-muted text-sm text-center py-2 font-body">No config data</p>
+            ) : (
+              <p className="text-text-muted text-sm text-center py-2 font-body">Loading...</p>
+            )}
+            {/* Config write form */}
+            <form onSubmit={handleWriteConfig} className="flex flex-col sm:flex-row gap-2 pt-3 border-t border-border-card">
+              <input
+                placeholder="Config key (e.g. deleteLockEnable)"
+                value={configKey}
+                onChange={(e) => setConfigKey(e.target.value)}
+                className="flex-1 px-3 py-2 rounded bg-card border border-border-card text-foreground text-sm focus:outline-none focus:border-focus-ring"
+                required
+              />
+              <input
+                placeholder="Value (e.g. 1 or 0)"
+                value={configValue}
+                onChange={(e) => setConfigValue(e.target.value)}
+                className="w-full sm:w-32 px-3 py-2 rounded bg-card border border-border-card text-foreground text-sm focus:outline-none focus:border-focus-ring"
+                required
+              />
+              <button type="submit" className="px-4 py-2 rounded bg-accent text-white text-xs hover:bg-accent-hover font-body shrink-0">Set Config</button>
+            </form>
           </div>
         )}
       </div>
