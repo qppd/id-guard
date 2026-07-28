@@ -81,7 +81,8 @@ export default function HomePage() {
           className="absolute inset-0 z-0"
           style={{ opacity: springOpacity, scale: springScale }}
         >
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-background/30 to-background z-10" />
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-background/60 to-background z-10" />
+          <div className="absolute inset-0 bg-black/20 z-10" />
           {settings.enable3D ? (
             <IDGuardScene />
           ) : (
@@ -108,9 +109,9 @@ export default function HomePage() {
           </FadeInView>
 
           <FadeInView delay={0.4}>
-            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-heading font-bold text-accent mb-4 leading-tight">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-heading font-bold text-white mb-4 leading-tight">
               Your{" "}
-              <span className="bg-gradient-to-r from-[var(--accent)] via-[var(--link)] to-[var(--accent-light)] bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-white via-[var(--link)] to-[var(--accent-light)] bg-clip-text text-transparent">
                 Digital Identity
               </span>
               , Guarded
@@ -118,7 +119,7 @@ export default function HomePage() {
           </FadeInView>
 
           <FadeInView delay={0.6}>
-            <p className="text-foreground text-lg sm:text-xl md:text-2xl mb-10 max-w-2xl mx-auto font-body leading-relaxed">
+            <p className="text-white/90 text-lg sm:text-xl md:text-2xl mb-10 max-w-2xl mx-auto font-body leading-relaxed">
               Next-gen smart lock management with real-time access control,
               secure key sharing, and intuitive dashboards — all from one platform.
             </p>
@@ -247,7 +248,7 @@ export default function HomePage() {
                 <h2 className="text-3xl sm:text-4xl font-heading font-bold text-white mb-4">
                   Ready to Secure Your Space?
                 </h2>
-                <p className="text-sky text-lg mb-8 font-body max-w-lg mx-auto">
+                <p className="text-white text-lg mb-8 font-body max-w-lg mx-auto">
                   Join thousands of users who trust IDGuard for their smart lock management.
                 </p>
                 <HoverScale scale={1.06}>
