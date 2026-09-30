@@ -45,8 +45,8 @@ const features = [
     icon: "01",
   },
   {
-    title: "Share eKeys",
-    desc: "Send temporary or permanent digital keys to family, guests, or staff.",
+    title: "Share Passcode",
+    desc: "Send temporary or permanent passcodes to family, guests, or staff.",
     icon: "02",
   },
   {
