@@ -12,7 +12,31 @@ interface CustomPasscodeEntry {
   note?: string;
 }
 
-type RecurringPasscodeType = "daily" | "weekend" | "workday";
+export type RecurringPasscodeType =
+  | "daily"
+  | "weekend"
+  | "workday"
+  | "mon"
+  | "tue"
+  | "wed"
+  | "thu"
+  | "fri"
+  | "sat"
+  | "sun";
+
+// Display labels for recurring passcode types (used in list labels and passcode names)
+export const RECURRING_LABELS: Record<RecurringPasscodeType, string> = {
+  daily: "Daily",
+  workday: "Mon–Fri",
+  weekend: "Sat–Sun",
+  mon: "Monday",
+  tue: "Tuesday",
+  wed: "Wednesday",
+  thu: "Thursday",
+  fri: "Friday",
+  sat: "Saturday",
+  sun: "Sunday",
+};
 
 interface RecurringPasscodeEntry {
   lockId: number;

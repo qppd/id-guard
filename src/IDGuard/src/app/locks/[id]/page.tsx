@@ -5,7 +5,21 @@ import useSWR from "swr";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useEffect, useState } from "react";
-import { storeCustomPasscode, storeRecurringPasscode, removeCustomPasscode, removeRecurringPasscode, getCustomPasscodes, getRecurringPasscodes } from "@/lib/passcodeRegistry";
+import { storeCustomPasscode, storeRecurringPasscode, removeCustomPasscode, removeRecurringPasscode, getCustomPasscodes, getRecurringPasscodes, RECURRING_LABELS, type RecurringPasscodeType } from "@/lib/passcodeRegistry";
+
+// UI recurring type → TTLock keyboardPwdType (per keyboardPwd/get docs)
+const CYCLIC_TYPES: Record<RecurringPasscodeType, number> = {
+  weekend: 5,
+  daily: 6,
+  workday: 7,
+  mon: 8,
+  tue: 9,
+  wed: 10,
+  thu: 11,
+  fri: 12,
+  sat: 13,
+  sun: 14,
+};
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
@@ -138,7 +152,7 @@ export default function LockDetailPage() {
   const [newPass, setNewPass] = useState("");
   const [passType, setPassType] = useState(2);
   const [passCustomName, setPassCustomName] = useState("");
-  const [passRecurringType, setPassRecurringType] = useState<"daily" | "weekend" | "workday">("daily");
+  const [passRecurringType, setPassRecurringType] = useState<RecurringPasscodeType>("daily");
   // Custom passcode validity window (datetime-local strings; empty = defaults)
   const [passStartDate, setPassStartDate] = useState("");
   const [passEndDate, setPassEndDate] = useState("");
@@ -222,8 +236,8 @@ export default function LockDetailPage() {
         if (endDate <= startDate) throw new Error("Valid until must be after valid from");
         displayName = passCustomName || "Custom";
       } else if (passType === 6) {
-        // Recurring maps to TTLock cyclic types: Daily=6, Workday=7, Weekend=5
-        apiType = passRecurringType === "daily" ? 6 : passRecurringType === "workday" ? 7 : 5;
+        // Recurring maps to TTLock cyclic types (see CYCLIC_TYPES map)
+        apiType = CYCLIC_TYPES[passRecurringType];
         // Cyclic passcodes encode the daily active window in the time-of-day of
         // startDate/endDate; the date part of endDate sets expiry.
         const [fh, fm] = (passActiveFrom || "09:00").split(":").map(Number);
@@ -235,7 +249,7 @@ export default function LockDetailPage() {
         dayEnd.setHours(th || 0, tm || 0, 0, 0);
         if (dayEnd.getTime() <= startDate) throw new Error("Active until must be after active from");
         endDate = dayEnd.getTime() + 365 * 24 * 60 * 60 * 1000; // expire 1 year out
-        displayName = passCustomName || (passRecurringType === "daily" ? "Daily Recurring" : passRecurringType === "workday" ? "Workday Recurring" : "Weekend Recurring");
+        displayName = passCustomName || `${RECURRING_LABELS[passRecurringType]} Recurring`;
       }
 
       const res = await fetch("/api/passcodes", {
@@ -645,7 +659,7 @@ export default function LockDetailPage() {
     const custom = customEntries.find((e) => e.keyboardPwdId === p.keyboardPwdId || e.passcode === p.keyboardPwd);
     const recurring = recurringEntries.find((e) => e.keyboardPwdId === p.keyboardPwdId || e.passcode === p.keyboardPwd);
     if (custom) return `Custom · ${custom.name}`;
-    if (recurring) return `Recurring · ${recurring.recurringType === "daily" ? "Daily" : recurring.recurringType === "workday" ? "Mon–Fri" : "Weekend"}`;
+    if (recurring) return `Recurring · ${RECURRING_LABELS[recurring.recurringType]}`;
     switch (p.keyboardPwdType) {
       case 1: return "One-time";
       case 2: return "Permanent";
@@ -851,12 +865,23 @@ export default function LockDetailPage() {
               {passType === 6 && (
                 <select
                   value={passRecurringType}
-                  onChange={(e) => setPassRecurringType(e.target.value as "daily" | "weekend")}
+                  onChange={(e) => setPassRecurringType(e.target.value as RecurringPasscodeType)}
                   className="w-full px-3 py-2 rounded bg-card border border-border-card text-foreground text-sm focus:outline-none focus:border-focus-ring"
                 >
-                  <option value="daily">Every day (Daily Cyclic)</option>
-                  <option value="workday">Mon–Fri (Workday Cyclic)</option>
-                  <option value="weekend">Sat–Sun (Weekend Cyclic)</option>
+                  <optgroup label="Repeating days">
+                    <option value="daily">Every day (Daily Cyclic)</option>
+                    <option value="workday">Mon–Fri (Workday Cyclic)</option>
+                    <option value="weekend">Sat–Sun (Weekend Cyclic)</option>
+                  </optgroup>
+                  <optgroup label="Specific day of week">
+                    <option value="mon">Every Monday (Monday Cyclic)</option>
+                    <option value="tue">Every Tuesday (Tuesday Cyclic)</option>
+                    <option value="wed">Every Wednesday (Wednesday Cyclic)</option>
+                    <option value="thu">Every Thursday (Thursday Cyclic)</option>
+                    <option value="fri">Every Friday (Friday Cyclic)</option>
+                    <option value="sat">Every Saturday (Saturday Cyclic)</option>
+                    <option value="sun">Every Sunday (Sunday Cyclic)</option>
+                  </optgroup>
                 </select>
               )}
               {passType === 6 && (
@@ -882,7 +907,9 @@ export default function LockDetailPage() {
                 </div>
               )}
               {passType === 6 && (
-                <p className="text-xs text-text-muted font-body">Works every {passRecurringType === "daily" ? "day" : passRecurringType === "workday" ? "workday" : "weekend day"} between these hours</p>
+                <p className="text-xs text-text-muted font-body">
+                  Works {passRecurringType === "daily" ? "every day" : passRecurringType === "workday" ? "Mon–Fri" : passRecurringType === "weekend" ? "every weekend" : `every ${RECURRING_LABELS[passRecurringType]}`} between these hours
+                </p>
               )}
               <button type="submit" className="w-full py-1.5 rounded bg-accent text-white text-sm hover:bg-accent-hover font-body">Add Passcode</button>
             </form>
