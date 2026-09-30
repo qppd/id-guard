@@ -17,15 +17,13 @@ const IDGuardScene = dynamic(() => import("@/components/IDGuardScene"), {
   ),
 });
 
+/* ─── Animated background orbs ─── */
 function AnimatedBackground() {
   return (
     <div className="fixed inset-0 -z-10 overflow-hidden">
-      {/* Gradient orbs */}
-      <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] rounded-full bg-gradient-to-br from-[var(--link)]/10 to-transparent blur-3xl" />
+      <div className="absolute top-[-20%] left[-10%] w-[60%] h-[60%] rounded-full bg-gradient-to-br from-[var(--link)]/10 to-transparent blur-3xl" />
       <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] rounded-full bg-gradient-to-tl from-[var(--accent)]/10 to-transparent blur-3xl" />
       <div className="absolute top-[40%] right-[20%] w-[30%] h-[30%] rounded-full bg-gradient-to-bl from-[var(--accent-light)]/8 to-transparent blur-3xl" />
-
-      {/* Grid pattern overlay */}
       <svg className="absolute inset-0 w-full h-full opacity-[0.03]" xmlns="http://www.w3.org/2000/svg">
         <defs>
           <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
@@ -38,6 +36,7 @@ function AnimatedBackground() {
   );
 }
 
+/* ─── Feature data ─── */
 const features = [
   {
     title: "Remote Lock/Unlock",
@@ -59,6 +58,14 @@ const features = [
     desc: "Manage multiple authentication methods from one dashboard.",
     icon: "04",
   },
+];
+
+/* ─── Stats data ─── */
+const stats = [
+  { num: "10K+", label: "Locks Managed" },
+  { num: "50K+", label: "Access Events" },
+  { num: "99.9%", label: "Uptime" },
+  { num: "24/7", label: "Monitoring" },
 ];
 
 export default function HomePage() {
@@ -213,12 +220,7 @@ export default function HomePage() {
             </FadeInView>
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-              {[
-                { num: "10K+", label: "Locks Managed" },
-                { num: "50K+", label: "Access Events" },
-                { num: "99.9%", label: "Uptime" },
-                { num: "24/7", label: "Monitoring" },
-              ].map((stat, i) => (
+              {stats.map((stat, i) => (
                 <FadeInView key={i} delay={i * 0.1}>
                   <motion.div
                     className="text-center"
