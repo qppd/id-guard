@@ -142,6 +142,9 @@ export default function LockDetailPage() {
   // Custom passcode validity window (datetime-local strings; empty = defaults)
   const [passStartDate, setPassStartDate] = useState("");
   const [passEndDate, setPassEndDate] = useState("");
+  // Recurring passcode daily active hours (time strings HH:mm; empty = defaults)
+  const [passActiveFrom, setPassActiveFrom] = useState("09:00");
+  const [passActiveUntil, setPassActiveUntil] = useState("18:00");
   // IC card & Fingerprint add forms removed — requires Bluetooth APP SDK, not cloud API
 
   // Passcode edit form state
@@ -219,7 +222,17 @@ export default function LockDetailPage() {
       } else if (passType === 6) {
         // Recurring maps to TTLock cyclic types: Daily=6, Workday=7, Weekend=5
         apiType = passRecurringType === "daily" ? 6 : passRecurringType === "workday" ? 7 : 5;
-        endDate = now + 365 * 24 * 60 * 60 * 1000;
+        // Cyclic passcodes encode the daily active window in the time-of-day of
+        // startDate/endDate; the date part of endDate sets expiry.
+        const [fh, fm] = (passActiveFrom || "09:00").split(":").map(Number);
+        const [th, tm] = (passActiveUntil || "18:00").split(":").map(Number);
+        const dayStart = new Date();
+        dayStart.setHours(fh || 0, fm || 0, 0, 0);
+        startDate = dayStart.getTime();
+        const dayEnd = new Date();
+        dayEnd.setHours(th || 0, tm || 0, 0, 0);
+        if (dayEnd.getTime() <= startDate) throw new Error("Active until must be after active from");
+        endDate = dayEnd.getTime() + 365 * 24 * 60 * 60 * 1000; // expire 1 year out
         displayName = passCustomName || (passRecurringType === "daily" ? "Daily Recurring" : passRecurringType === "workday" ? "Workday Recurring" : "Weekend Recurring");
       }
 
@@ -244,6 +257,8 @@ export default function LockDetailPage() {
       setPassCustomName("");
       setPassStartDate("");
       setPassEndDate("");
+      setPassActiveFrom("09:00");
+      setPassActiveUntil("18:00");
       setPassRecurringType("daily");
       setPassForm(false);
       refreshPass();
@@ -837,6 +852,31 @@ export default function LockDetailPage() {
                   <option value="workday">Mon–Fri (Workday Cyclic)</option>
                   <option value="weekend">Sat–Sun (Weekend Cyclic)</option>
                 </select>
+              )}
+              {passType === 6 && (
+                <div className="grid grid-cols-2 gap-2">
+                  <label className="text-xs text-text-secondary font-body">
+                    Active from
+                    <input
+                      type="time"
+                      value={passActiveFrom}
+                      onChange={(e) => setPassActiveFrom(e.target.value)}
+                      className="mt-1 w-full px-2 py-1.5 rounded bg-card border border-border-card text-foreground text-sm focus:outline-none focus:border-focus-ring"
+                    />
+                  </label>
+                  <label className="text-xs text-text-secondary font-body">
+                    Active until
+                    <input
+                      type="time"
+                      value={passActiveUntil}
+                      onChange={(e) => setPassActiveUntil(e.target.value)}
+                      className="mt-1 w-full px-2 py-1.5 rounded bg-card border border-border-card text-foreground text-sm focus:outline-none focus:border-focus-ring"
+                    />
+                  </label>
+                </div>
+              )}
+              {passType === 6 && (
+                <p className="text-xs text-text-muted font-body">Works every {passRecurringType === "daily" ? "day" : passRecurringType === "workday" ? "workday" : "weekend day"} between these hours</p>
               )}
               <button type="submit" className="w-full py-1.5 rounded bg-accent text-white text-sm hover:bg-accent-hover font-body">Add Passcode</button>
             </form>
