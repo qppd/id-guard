@@ -5,6 +5,7 @@ import useSWR from "swr";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useEffect, useState } from "react";
+import { storeCustomPasscode, storeRecurringPasscode } from "@/lib/passcodeRegistry";
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
@@ -148,6 +149,8 @@ export default function LockDetailPage() {
   const [passForm, setPassForm] = useState(false);
   const [newPass, setNewPass] = useState("");
   const [passType, setPassType] = useState(2);
+  const [passCustomName, setPassCustomName] = useState("");
+  const [passRecurringType, setPassRecurringType] = useState<"daily" | "weekend">("daily");
   // IC card & Fingerprint add forms removed — requires Bluetooth APP SDK, not cloud API
 
   // Passcode edit form state
@@ -213,17 +216,34 @@ export default function LockDetailPage() {
     try {
       const now = Date.now();
       // TTLock requires startDate for all types; Period type also needs endDate
-      const startDate = now;
-      const endDate = passType === 3 ? now + 365 * 24 * 60 * 60 * 1000 : undefined;
+      let startDate = now;
+      let endDate = passType === 3 ? now + 365 * 24 * 60 * 60 * 1000 : undefined;
+      let apiType = passType;
+
+      // Custom and Recurring are special UI types that map to TTLock types
+      if (passType === 5) {
+        // Custom: Period with custom name
+        apiType = 3;
+        endDate = now + 365 * 24 * 60 * 60 * 1000; // 1 year default
+        storeCustomPasscode({ lockId, keyboardPwdId: 0, name: passCustomName || "Custom", passcode: newPass, note: passCustomName });
+      } else if (passType === 6) {
+        // Recurring: Daily or Weekend cyclic
+        apiType = passRecurringType === "daily" ? 6 : 5;
+        // For cyclic types, set a reasonable duration
+        endDate = now + 365 * 24 * 60 * 60 * 1000;
+        storeRecurringPasscode({ lockId, keyboardPwdId: 0, name: passCustomName || "Recurring", passcode: newPass, recurringType: passRecurringType, note: passCustomName });
+      }
+
       const res = await fetch("/api/passcodes", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "add", lockId, passcode: newPass, type: passType, startDate, endDate }),
+        body: JSON.stringify({ action: "add", lockId, passcode: newPass, type: apiType, startDate, endDate }),
       });
       const data = await res.json();
       if (!data.ok) throw new Error(data.error);
       setMsg("Passcode added!");
       setNewPass("");
+      setPassCustomName("");
       setPassForm(false);
       refreshPass();
     } catch (e) {
