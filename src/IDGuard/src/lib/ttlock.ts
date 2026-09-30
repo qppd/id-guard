@@ -411,10 +411,22 @@ export async function listPasscodes(accessToken: string, lockId: number, page = 
   );
 }
 
-export async function getPasscode(accessToken: string, lockId: number, passcodeId: number) {
+export async function getPasscode(
+  accessToken: string,
+  lockId: number,
+  passcodeId: number,
+  passcodeType = 2,
+  passcodeVersion = 4
+) {
   return apiPost<{ [key: string]: unknown }>(
     "/v3/keyboardPwd/get",
-    { lockId: String(lockId), passcodeId: String(passcodeId) },
+    // param names/required fields per the v3 keyboardPwd/get doc
+    {
+      lockId: String(lockId),
+      keyboardPwdId: String(passcodeId),
+      keyboardPwdType: String(passcodeType),
+      keyboardPwdVersion: String(passcodeVersion),
+    },
     accessToken
   );
 }
@@ -447,7 +459,8 @@ export async function addPasscode(
 export async function deletePasscode(accessToken: string, lockId: number, passcodeId: number, deleteType = 2) {
   return apiPost<{ errcode: number; errmsg: string }>(
     "/v3/keyboardPwd/delete",
-    { lockId: String(lockId), passcodeId: String(passcodeId), deleteType: String(deleteType) },
+    // param name is keyboardPwdId per the v3 keyboardPwd/delete doc
+    { lockId: String(lockId), keyboardPwdId: String(passcodeId), deleteType: String(deleteType) },
     accessToken
   );
 }

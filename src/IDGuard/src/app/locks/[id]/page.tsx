@@ -205,9 +205,11 @@ export default function LockDetailPage() {
     setMsg(""); setErr("");
     try {
       const now = Date.now();
-      // TTLock requires startDate for all types; Period type also needs endDate
+      // TTLock keyboardPwd/add requires BOTH startDate and endDate for all types
       let startDate = now;
-      let endDate = passType === 3 ? now + 365 * 24 * 60 * 60 * 1000 : undefined;
+      let endDate = now + 5 * 365 * 24 * 60 * 60 * 1000; // Permanent: +5y (TTLock app convention)
+      if (passType === 1) endDate = now + 6 * 60 * 60 * 1000; // One-time: valid 6h
+      if (passType === 3) endDate = now + 365 * 24 * 60 * 60 * 1000; // Period: 1y default
       let apiType = passType;
       let displayName = "";
 
