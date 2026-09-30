@@ -1,0 +1,16 @@
+#!/bin/sh
+# Mermaid render check — install into .git/hooks/pre-commit:
+#   cp scripts/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit
+# Bypass with: git commit --no-verify
+
+changed_md=$(git diff --cached --name-only --diff-filter=ACM -- '*.md')
+[ -z "$changed_md" ] && exit 0
+
+root=$(git rev-parse --show-toplevel)
+node "$root/src/IDGuard/scripts/check-mermaid.mjs" $changed_md || {
+  echo ""
+  echo "Commit blocked: mermaid syntax errors (see above)."
+  echo "Fix the diagrams, or commit with --no-verify to skip this check."
+  exit 1
+}
+exit 0
