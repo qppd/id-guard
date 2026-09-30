@@ -202,9 +202,10 @@ export default function LockDetailPage() {
   // Merge isOnline from main gateway list into by-lock list (listByLock doesn't return isOnline)
   const gwByLock = gwByLockRes?.data ?? [];
   const gwAll = gwRes?.data ?? [];
-  const gwOnlineMap = new Map(gwAll.map((g: { [key: string]: unknown }) => [g.gatewayId, g.isOnline]));
+  // listByLock has no gatewayName/isOnline — merge both from the account gateway list
+  const gwInfoMap = new Map(gwAll.map((g: { [key: string]: unknown }) => [g.gatewayId, g]));
   const gateways = gwByLock.length > 0
-    ? gwByLock.map((g: { [key: string]: unknown }) => ({ ...g, isOnline: gwOnlineMap.get(g.gatewayId) ?? g.isOnline }))
+    ? gwByLock.map((g: { [key: string]: unknown }) => ({ ...gwInfoMap.get(g.gatewayId), ...g }))
     : gwAll;
   const records = recRes?.data ?? [];
   const icCards = icRes?.data ?? [];

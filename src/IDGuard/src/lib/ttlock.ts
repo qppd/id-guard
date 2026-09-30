@@ -839,13 +839,15 @@ export async function listGatewaysByLock(accessToken: string, lockId: number) {
   );
 }
 
-// Get gateway detail
+// Get gateway detail — there is no /v3/gateway/detail endpoint; the documented
+// gateway list returns full rows, so filter it by id.
 export async function getGatewayDetail(accessToken: string, gatewayId: number) {
-  return apiPost<{ [key: string]: unknown }>(
-    "/v3/gateway/detail",
-    { gatewayId: String(gatewayId) },
-    accessToken
+  const res = await listGateways(accessToken, 1, 100);
+  const found = (res.list ?? []).find(
+    (g: { [key: string]: unknown }) => Number(g.gatewayId) === gatewayId
   );
+  if (!found) throw new Error(`Gateway ${gatewayId} not found in your account`);
+  return found;
 }
 
 // Get gateway config (alias for detail)
