@@ -501,6 +501,22 @@ export async function listRecords(
   );
 }
 
+// Fetch ALL record pages (pageSize=100, the API max) so the UI can show the
+// complete history instead of just the first 50. Safety cap at maxPages.
+export async function listAllRecords(accessToken: string, lockId: number, maxPages = 100) {
+  const pageSize = 100;
+  const all: { [key: string]: unknown }[] = [];
+  let total = 0;
+  for (let page = 1; page <= maxPages; page++) {
+    const res = await listRecords(accessToken, lockId, page, pageSize);
+    const list = res.list ?? [];
+    total = res.total ?? all.length + list.length;
+    all.push(...list);
+    if (list.length < pageSize || all.length >= total) break;
+  }
+  return { list: all, total };
+}
+
 // Clear all records
 export async function clearRecords(accessToken: string, lockId: number) {
   return apiPost<{ errcode: number; errmsg: string }>(
@@ -530,13 +546,28 @@ export async function uploadRecords(accessToken: string, lockId: number, records
 
 // ===== IC Card Endpoints =====
 
-export async function listICCards(accessToken: string, lockId: number, page = 1, size = 50) {
+// Per-lock IC card list — same endpoint the TTLock web console uses.
+// (/v3/icCard/list is account-scoped and misses cards added elsewhere)
+export async function listICCards(accessToken: string, lockId: number, page = 1, size = 100) {
   const params: { [key: string]: string } = {
     lockId: String(lockId),
     pageNo: String(page),
     pageSize: String(size),
   };
-  return apiPost("/v3/icCard/list", params, accessToken);
+  return apiPost("/v3/identityCard/list", params, accessToken);
+}
+
+// Fetch ALL IC card pages (pageSize=100, the API max)
+export async function listAllICCards(accessToken: string, lockId: number, maxPages = 20) {
+  const pageSize = 100;
+  const all: { [key: string]: unknown }[] = [];
+  for (let page = 1; page <= maxPages; page++) {
+    const res = await listICCards(accessToken, lockId, page, pageSize);
+    const list = (res as { list?: { [key: string]: unknown }[] }).list ?? [];
+    all.push(...list);
+    if (list.length < pageSize) break;
+  }
+  return { list: all };
 }
 
 export async function addICCard(

@@ -8,8 +8,8 @@ export async function GET(req: NextRequest) {
   }
 
   const result = await callWithAuth(async (token) => {
-    const { listICCards } = await import("@/lib/ttlock");
-    return listICCards(token, lockId);
+    const { listAllICCards } = await import("@/lib/ttlock");
+    return listAllICCards(token, lockId);
   });
   if (!result.ok) return result.response;
   // TTLock IC card list may return array directly or wrapped in data/list

@@ -59,7 +59,6 @@ export default function LockDetailPage() {
   const { settings } = useTheme();
 
   // Data fetching
-  const [recordsPage, setRecordsPage] = useState(1);
   const { data: detailRes, mutate: refreshDetail } = useSWR<{ ok: boolean; data: LockDetail }>(
     isAuthenticated ? `/api/locks/${lockId}` : null,
     fetcher
@@ -71,7 +70,8 @@ export default function LockDetailPage() {
   );
 
   const { data: recRes, mutate: refreshRec } = useSWR<{ ok: boolean; data: LockRecord[]; total: number }>(
-    isAuthenticated ? `/api/records?lockId=${lockId}&page=${recordsPage}` : null,
+    // fetches ALL pages server-side; UI paginates locally below
+    isAuthenticated ? `/api/records?lockId=${lockId}` : null,
     fetcher
   );
 
@@ -664,30 +664,34 @@ export default function LockDetailPage() {
     ? battery > 50 ? "bg-success-soft" : battery > 20 ? "bg-warning-soft" : "bg-error-soft"
     : "";
 
+  // Per TTLock v3 lockRecord/list docs
   const recordTypeLabel: { [key: number]: string } = {
-    1: "Bluetooth Unlock",
-    2: "Bluetooth Lock",
-    3: "Bluetooth Open",
+    1: "App Unlock",
+    2: "Parking Lock Touch",
+    3: "Gateway Unlock",
     4: "Passcode Unlock",
-    5: "Passcode Lock",
-    6: "IC Card",
-    7: "IC Card",
-    8: "Fingerprint",
-    9: "Fingerprint",
-    10: "Mechanical Key",
-    11: "Mechanical Key",
-    12: "App Unlock",
-    13: "App Lock",
-    14: "Gateway Unlock",
-    15: "Gateway Lock",
-    16: "Remote Unlock",
-    17: "Remote Lock",
-    22: "Passcode Error",
-    26: "IC Card",
-    28: "App Unlock",
-    44: "Door Opened",
-    48: "Door Closed",
-    55: "Remote",
+    5: "Parking Lock Raise",
+    6: "Parking Lock Lower",
+    7: "IC Card Unlock",
+    8: "Fingerprint Unlock",
+    9: "Wristband Unlock",
+    10: "Mechanical Key Unlock",
+    11: "Bluetooth Lock",
+    12: "Gateway Unlock",
+    29: "Unexpected Unlock",
+    30: "Door Magnet Close",
+    31: "Door Magnet Open",
+    32: "Open From Inside",
+    33: "Lock by Fingerprint",
+    34: "Lock by Passcode",
+    35: "Lock by IC Card",
+    36: "Lock by Mechanical Key",
+    37: "Remote Control",
+    44: "Tamper Alert",
+    45: "Auto Lock",
+    46: "Unlock Key",
+    47: "Lock Key",
+    48: "Invalid Passcode",
   };
 
   return (
