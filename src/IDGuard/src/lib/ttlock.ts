@@ -534,11 +534,7 @@ export async function listICCards(accessToken: string, lockId: number, page = 1,
     pageNo: String(page),
     pageSize: String(size),
   };
-  return apiPost<{ list: { [key: string]: unknown }[] }>(
-    "/v3/icCard/list",
-    params,
-    accessToken
-  );
+  return apiPost("/v3/icCard/list", params, accessToken);
 }
 
 export async function addICCard(

@@ -23,7 +23,6 @@ export default function Navbar() {
   const navItems = [
     { href: "/dashboard", label: "Dashboard" },
     { href: "/gateways", label: "Gateways" },
-    { href: "/keys", label: "Keys" },
     { href: "/settings", label: "Settings" },
   ];
 

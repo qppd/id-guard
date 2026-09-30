@@ -159,6 +159,7 @@ export default function LockDetailPage() {
 
   // Batch delete records state
   const [selectedRecords, setSelectedRecords] = useState<Set<number>>(new Set());
+  const [recordsFilter, setRecordsFilter] = useState<"all" | "success" | "failed">("all");
 
   // Rename form
   const [renameForm, setRenameForm] = useState(false);
@@ -902,36 +903,66 @@ export default function LockDetailPage() {
         </div>
         {recordsExpanded && (
           <div className="mt-3">
+            {/* Filter tabs */}
+            <div className="flex gap-2 mb-3">
+              {(["all", "success", "failed"] as const).map((filter) => (
+                <button
+                  key={filter}
+                  onClick={() => setRecordsFilter(filter)}
+                  className={`px-3 py-1 rounded text-xs font-body transition-colors ${
+                    recordsFilter === filter
+                      ? "bg-accent text-white"
+                      : "bg-alt text-text-secondary border border-border-card hover:text-foreground"
+                  }`}
+                >
+                  {filter === "all" ? "All" : filter === "success" ? "Successful" : "Failed"}
+                </button>
+              ))}
+            </div>
             <div className="space-y-1 max-h-96 overflow-y-auto">
-              {records.length === 0 ? (
+              {(() => {
+                const filtered = records.filter((r) => {
+                  if (recordsFilter === "all") return true;
+                  if (recordsFilter === "success") return r.success === 1;
+                  return r.success === 0;
+                });
+                return filtered;
+              })().length === 0 ? (
                 <p className="text-text-muted text-sm text-center py-4 font-body">No records</p>
               ) : (
-                records.map((r) => (
-                  <div key={r.recordId} className="flex items-center justify-between bg-alt rounded px-3 py-2 text-sm">
-                    <div className="flex items-center gap-2 min-w-0 flex-1">
-                      <input
-                        type="checkbox"
-                        checked={selectedRecords.has(r.recordId)}
-                        onChange={() => toggleRecordSelection(r.recordId)}
-                        className="shrink-0 accent-accent"
-                      />
-                      <span className={`shrink-0 ${r.success ? "text-success" : "text-error"}`}>
-                        {r.success ? "Success" : "Failed"}
-                      </span>
-                      <span className="text-text-secondary font-body truncate">
-                        {recordTypeLabel[r.recordType] || `Type ${r.recordType}`}
-                      </span>
-                      {r.username && (
-                        <span className="text-text-muted text-xs font-body truncate">{r.username}</span>
-                      )}
+                (() => {
+                  const filtered = records.filter((r) => {
+                    if (recordsFilter === "all") return true;
+                    if (recordsFilter === "success") return r.success === 1;
+                    return r.success === 0;
+                  });
+                  return filtered.map((r) => (
+                    <div key={r.recordId} className="flex items-center justify-between bg-alt rounded px-3 py-2 text-sm">
+                      <div className="flex items-center gap-2 min-w-0 flex-1">
+                        <input
+                          type="checkbox"
+                          checked={selectedRecords.has(r.recordId)}
+                          onChange={() => toggleRecordSelection(r.recordId)}
+                          className="shrink-0 accent-accent"
+                        />
+                        <span className={`shrink-0 ${r.success ? "text-success" : "text-error"}`}>
+                          {r.success ? "Success" : "Failed"}
+                        </span>
+                        <span className="text-text-secondary font-body truncate">
+                          {recordTypeLabel[r.recordType] || `Type ${r.recordType}`}
+                        </span>
+                        {r.username && (
+                          <span className="text-text-muted text-xs font-body truncate">{r.username}</span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-3 shrink-0">
+                        <span className="text-text-muted text-xs font-body">
+                          {r.lockDate ? new Date(r.lockDate).toLocaleString() : "—"}
+                        </span>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-3 shrink-0">
-                      <span className="text-text-muted text-xs font-body">
-                        {r.lockDate ? new Date(r.lockDate).toLocaleString() : "—"}
-                      </span>
-                    </div>
-                  </div>
-                ))
+                  ));
+                })()
               )}
             </div>
             {/* Pagination */}
