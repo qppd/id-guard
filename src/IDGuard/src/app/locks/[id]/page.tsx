@@ -114,16 +114,6 @@ export default function LockDetailPage() {
     fetcher
   );
 
-  const { data: workingModeRes, mutate: refreshWorkingMode } = useSWR<{ ok: boolean; data: { workingMode: number; cyclicConfig?: string } }>(
-    isAuthenticated ? `/api/locks/working-mode?lockId=${lockId}` : null,
-    fetcher
-  );
-
-  const { data: passageModeRes, mutate: refreshPassageMode } = useSWR<{ ok: boolean; data: { passageMode: number; cyclicConfig?: string; autoUnlock?: number } }>(
-    isAuthenticated ? `/api/locks/passage-mode?lockId=${lockId}` : null,
-    fetcher
-  );
-
   const { data: lockTimeRes, mutate: refreshLockTime } = useSWR<{ ok: boolean; data: { date: number } }>(
     isAuthenticated ? `/api/locks/time?lockId=${lockId}` : null,
     fetcher
@@ -141,8 +131,6 @@ export default function LockDetailPage() {
   const [recordsExpanded, setRecordsExpanded] = useState(false);
   const [icExpanded, setIcExpanded] = useState(false);
   const [fpExpanded, setFpExpanded] = useState(false);
-  const [workingModeExpanded, setWorkingModeExpanded] = useState(false);
-  const [passageModeExpanded, setPassageModeExpanded] = useState(false);
   const [lockTimeExpanded, setLockTimeExpanded] = useState(false);
 
   // Passcode form
@@ -181,10 +169,6 @@ export default function LockDetailPage() {
   // Auto lock time
   const [autoLockForm, setAutoLockForm] = useState(false);
   const [autoLockSeconds, setAutoLockSeconds] = useState("");
-  // Working mode config
-  const [workingModeConfig, setWorkingModeConfig] = useState(1);
-  // Passage mode config
-  const [passageModeConfig, setPassageModeConfig] = useState(2);
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) router.replace("/login");
@@ -207,8 +191,6 @@ export default function LockDetailPage() {
   const fingerprints = fpRes?.data ?? [];
   const battery = batteryRes?.data?.electricQuantity ?? detail?.electricQuantity;
   const openState = openStateRes?.data?.state;
-  const workingMode = workingModeRes?.data?.workingMode;
-  const passageMode = passageModeRes?.data?.passageMode;
   const lockTime = lockTimeRes?.data?.date;
 
   // Handlers
@@ -585,40 +567,6 @@ export default function LockDetailPage() {
     }
   };
 
-  const handleConfigWorkingMode = async () => {
-    setMsg(""); setErr("");
-    try {
-      const res = await fetch("/api/locks/working-mode", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ lockId, workingMode: workingModeConfig, type: 2 }),
-      });
-      const data = await res.json();
-      if (!data.ok) throw new Error(data.error);
-      setMsg("Working mode updated!");
-      refreshWorkingMode();
-    } catch (e) {
-      setErr(e instanceof Error ? e.message : "Failed");
-    }
-  };
-
-  const handleConfigPassageMode = async () => {
-    setMsg(""); setErr("");
-    try {
-      const res = await fetch("/api/locks/passage-mode", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ lockId, passageMode: passageModeConfig, type: 2 }),
-      });
-      const data = await res.json();
-      if (!data.ok) throw new Error(data.error);
-      setMsg("Passage mode updated!");
-      refreshPassageMode();
-    } catch (e) {
-      setErr(e instanceof Error ? e.message : "Failed");
-    }
-  };
-
   const handleClearRecords = async () => {
     if (!confirm("Clear all unlock records?")) return;
     setMsg(""); setErr("");
@@ -686,14 +634,6 @@ export default function LockDetailPage() {
     44: "Door Opened",
     48: "Door Closed",
     55: "Remote",
-  };
-
-  const workingModeLabel: { [key: number]: string } = {
-    1: "All Day", 2: "Off", 3: "Custom",
-  };
-
-  const passageModeLabel: { [key: number]: string } = {
-    1: "On", 2: "Off",
   };
 
   return (
@@ -811,7 +751,28 @@ export default function LockDetailPage() {
                 <option value={2}>Permanent</option>
                 <option value={3}>Period (Timed)</option>
                 <option value={1}>One-time</option>
+                <option value={5}>Custom</option>
+                <option value={6}>Recurring</option>
               </select>
+              {passType === 5 && (
+                <input
+                  type="text"
+                  placeholder="Custom name (e.g., 'Weekend Access')"
+                  value={passCustomName}
+                  onChange={(e) => setPassCustomName(e.target.value)}
+                  className="w-full px-3 py-2 rounded bg-card border border-border-card text-foreground text-sm focus:outline-none focus:border-focus-ring"
+                />
+              )}
+              {passType === 6 && (
+                <select
+                  value={passRecurringType}
+                  onChange={(e) => setPassRecurringType(e.target.value as "daily" | "weekend")}
+                  className="w-full px-3 py-2 rounded bg-card border border-border-card text-foreground text-sm focus:outline-none focus:border-focus-ring"
+                >
+                  <option value="daily">Daily Cyclic</option>
+                  <option value="weekend">Weekend Cyclic</option>
+                </select>
+              )}
               <button type="submit" className="w-full py-1.5 rounded bg-accent text-white text-sm hover:bg-accent-hover font-body">Add Passcode</button>
             </form>
           )}
@@ -941,47 +902,6 @@ export default function LockDetailPage() {
             </div>
           )}
         </div>
-      </div>
-
-      {/* Working Mode */}
-      <div className="card-compact bg-card border border-border-card rounded-lg p-4 mt-4 sm:mt-6 shadow-card">
-        <button onClick={() => setWorkingModeExpanded(!workingModeExpanded)} className="flex items-center justify-between w-full">
-          <h2 className="text-base sm:text-lg font-heading font-semibold text-accent">Working Mode</h2>
-          <span className="text-text-muted">{workingModeExpanded ? "\u25B2" : "\u25BC"}</span>
-        </button>
-        {workingModeExpanded && (
-          <div className="mt-3 space-y-2">
-            <p className="text-sm text-text-secondary font-body">Current: {workingMode != null ? workingModeLabel[workingMode] || `Mode ${workingMode}` : "Unknown"}</p>
-            <div className="flex gap-2 items-center">
-              <select value={workingModeConfig} onChange={(e) => setWorkingModeConfig(Number(e.target.value))} className="px-3 py-2 rounded bg-card border border-border-card text-foreground text-sm focus:outline-none focus:border-focus-ring">
-                <option value={1}>All Day</option>
-                <option value={2}>Off</option>
-                <option value={3}>Custom</option>
-              </select>
-              <button onClick={handleConfigWorkingMode} className="px-4 py-2 rounded bg-accent text-white text-sm hover:bg-accent-hover font-body">Apply</button>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Passage Mode */}
-      <div className="card-compact bg-card border border-border-card rounded-lg p-4 mt-4 sm:mt-6 shadow-card">
-        <button onClick={() => setPassageModeExpanded(!passageModeExpanded)} className="flex items-center justify-between w-full">
-          <h2 className="text-base sm:text-lg font-heading font-semibold text-accent">Passage Mode</h2>
-          <span className="text-text-muted">{passageModeExpanded ? "\u25B2" : "\u25BC"}</span>
-        </button>
-        {passageModeExpanded && (
-          <div className="mt-3 space-y-2">
-            <p className="text-sm text-text-secondary font-body">Current: {passageMode != null ? passageModeLabel[passageMode] || `Mode ${passageMode}` : "Unknown"}</p>
-            <div className="flex gap-2 items-center">
-              <select value={passageModeConfig} onChange={(e) => setPassageModeConfig(Number(e.target.value))} className="px-3 py-2 rounded bg-card border border-border-card text-foreground text-sm focus:outline-none focus:border-focus-ring">
-                <option value={1}>On</option>
-                <option value={2}>Off</option>
-              </select>
-              <button onClick={handleConfigPassageMode} className="px-4 py-2 rounded bg-accent text-white text-sm hover:bg-accent-hover font-body">Apply</button>
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Lock Time */}
