@@ -116,7 +116,7 @@ export default function HomePage() {
           </FadeInView>
 
           <FadeInView delay={0.4}>
-            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-heading font-bold text-white mb-4 leading-tight">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-heading font-bold text-white! mb-4 leading-tight">
               Your{" "}
               <span className="bg-gradient-to-r from-white via-[var(--link)] to-[var(--accent-light)] bg-clip-text text-transparent">
                 Digital Identity
@@ -126,7 +126,7 @@ export default function HomePage() {
           </FadeInView>
 
           <FadeInView delay={0.6}>
-            <p className="text-white/90 text-lg sm:text-xl md:text-2xl mb-10 max-w-2xl mx-auto font-body leading-relaxed">
+            <p className="text-white!/90 text-lg sm:text-xl md:text-2xl mb-10 max-w-2xl mx-auto font-body leading-relaxed">
               Next-gen smart lock management with real-time access control,
               secure key sharing, and intuitive dashboards — all from one platform.
             </p>
@@ -137,7 +137,7 @@ export default function HomePage() {
               <HoverScale scale={1.06}>
                 <motion.a
                   href="/login"
-                  className="px-10 py-4 rounded-xl bg-accent text-white font-semibold text-lg hover:bg-accent-hover transition-all shadow-lg shadow-[var(--accent)]/25 font-body inline-block"
+                  className="px-10 py-4 rounded-xl bg-accent text-white! font-semibold text-lg hover:bg-accent-hover transition-all shadow-lg shadow-[var(--accent)]/25 font-body inline-block"
                   whileHover={{ boxShadow: "0 0 40px rgba(59, 130, 246, 0.4)" }}
                 >
                   Get Started
@@ -247,10 +247,10 @@ export default function HomePage() {
           <div className="max-w-3xl mx-auto text-center">
             <FadeInView>
               <div className="bg-gradient-to-br from-[var(--accent)] to-[var(--accent-dark)] rounded-3xl p-10 md:p-16 shadow-xl">
-                <h2 className="text-3xl sm:text-4xl font-heading font-bold text-white mb-4">
+                <h2 className="text-3xl sm:text-4xl font-heading font-bold text-white! mb-4">
                   Ready to Secure Your Space?
                 </h2>
-                <p className="text-white text-lg mb-8 font-body max-w-lg mx-auto">
+                <p className="text-white! text-lg mb-8 font-body max-w-lg mx-auto">
                   Join thousands of users who trust IDGuard for their smart lock management.
                 </p>
                 <HoverScale scale={1.06}>
