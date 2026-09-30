@@ -12,7 +12,7 @@ interface CustomPasscodeEntry {
   note?: string;
 }
 
-type RecurringPasscodeType = "daily" | "weekend";
+type RecurringPasscodeType = "daily" | "weekend" | "workday";
 
 interface RecurringPasscodeEntry {
   lockId: number;
@@ -54,8 +54,10 @@ export function getRecurringPasscodes(lockId: number): RecurringPasscodeEntry[] 
 
 export function storeCustomPasscode(entry: CustomPasscodeEntry): void {
   const items = readStore<CustomPasscodeEntry>(STORAGE_KEY_CUSTOM);
+  // A passcode (digits) is unique per lock — update the entry if it already exists,
+  // otherwise append. TTLock returns the real keyboardPwdId only after creation.
   const idx = items.findIndex(
-    (e) => e.lockId === entry.lockId && e.keyboardPwdId === entry.keyboardPwdId
+    (e) => e.lockId === entry.lockId && e.passcode === entry.passcode
   );
   if (idx >= 0) items[idx] = entry;
   else items.push(entry);
@@ -64,8 +66,10 @@ export function storeCustomPasscode(entry: CustomPasscodeEntry): void {
 
 export function storeRecurringPasscode(entry: RecurringPasscodeEntry): void {
   const items = readStore<RecurringPasscodeEntry>(STORAGE_KEY_RECURRING);
+  // A passcode (digits) is unique per lock — update the entry if it already exists,
+  // otherwise append. TTLock returns the real keyboardPwdId only after creation.
   const idx = items.findIndex(
-    (e) => e.lockId === entry.lockId && e.keyboardPwdId === entry.keyboardPwdId
+    (e) => e.lockId === entry.lockId && e.passcode === entry.passcode
   );
   if (idx >= 0) items[idx] = entry;
   else items.push(entry);
@@ -81,7 +85,7 @@ export function removeCustomPasscode(lockId: number, keyboardPwdId: number): voi
 
 export function removeRecurringPasscode(lockId: number, keyboardPwdId: number): void {
   const items = readStore<RecurringPasscodeEntry>(STORAGE_KEY_RECURRING).filter(
-    (e) => !(e.lockId === lockId && e.keyboardPwdId === e.keyboardPwdId)
+    (e) => !(e.lockId === lockId && e.keyboardPwdId === keyboardPwdId)
   );
   writeStore(STORAGE_KEY_RECURRING, items);
 }

@@ -5,7 +5,7 @@ import useSWR from "swr";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useEffect, useState } from "react";
-import { storeCustomPasscode, storeRecurringPasscode } from "@/lib/passcodeRegistry";
+import { storeCustomPasscode, storeRecurringPasscode, removeCustomPasscode, removeRecurringPasscode, getCustomPasscodes, getRecurringPasscodes } from "@/lib/passcodeRegistry";
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
@@ -138,7 +138,10 @@ export default function LockDetailPage() {
   const [newPass, setNewPass] = useState("");
   const [passType, setPassType] = useState(2);
   const [passCustomName, setPassCustomName] = useState("");
-  const [passRecurringType, setPassRecurringType] = useState<"daily" | "weekend">("daily");
+  const [passRecurringType, setPassRecurringType] = useState<"daily" | "weekend" | "workday">("daily");
+  // Custom passcode validity window (datetime-local strings; empty = defaults)
+  const [passStartDate, setPassStartDate] = useState("");
+  const [passEndDate, setPassEndDate] = useState("");
   // IC card & Fingerprint add forms removed — requires Bluetooth APP SDK, not cloud API
 
   // Passcode edit form state
@@ -203,31 +206,45 @@ export default function LockDetailPage() {
       let startDate = now;
       let endDate = passType === 3 ? now + 365 * 24 * 60 * 60 * 1000 : undefined;
       let apiType = passType;
+      let displayName = "";
 
       // Custom and Recurring are special UI types that map to TTLock types
       if (passType === 5) {
-        // Custom: Period with custom name
+        // Custom: Period passcode with user-chosen validity window + friendly name
         apiType = 3;
-        endDate = now + 365 * 24 * 60 * 60 * 1000; // 1 year default
-        storeCustomPasscode({ lockId, keyboardPwdId: 0, name: passCustomName || "Custom", passcode: newPass, note: passCustomName });
+        startDate = passStartDate ? new Date(passStartDate).getTime() : now;
+        endDate = passEndDate ? new Date(passEndDate).getTime() : now + 365 * 24 * 60 * 60 * 1000;
+        if (endDate <= startDate) throw new Error("Valid until must be after valid from");
+        displayName = passCustomName || "Custom";
       } else if (passType === 6) {
-        // Recurring: Daily or Weekend cyclic
-        apiType = passRecurringType === "daily" ? 6 : 5;
-        // For cyclic types, set a reasonable duration
+        // Recurring maps to TTLock cyclic types: Daily=6, Workday=7, Weekend=5
+        apiType = passRecurringType === "daily" ? 6 : passRecurringType === "workday" ? 7 : 5;
         endDate = now + 365 * 24 * 60 * 60 * 1000;
-        storeRecurringPasscode({ lockId, keyboardPwdId: 0, name: passCustomName || "Recurring", passcode: newPass, recurringType: passRecurringType, note: passCustomName });
+        displayName = passCustomName || (passRecurringType === "daily" ? "Daily Recurring" : passRecurringType === "workday" ? "Workday Recurring" : "Weekend Recurring");
       }
 
       const res = await fetch("/api/passcodes", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "add", lockId, passcode: newPass, type: apiType, startDate, endDate }),
+        body: JSON.stringify({ action: "add", lockId, passcode: newPass, type: apiType, startDate, endDate, name: displayName || undefined }),
       });
       const data = await res.json();
       if (!data.ok) throw new Error(data.error);
+      const newPwdId = Number(data.data?.keyboardPwdId) || 0;
+
+      // Record Custom/Recurring labels locally (TTLock list only returns numeric types)
+      if (passType === 5) {
+        storeCustomPasscode({ lockId, keyboardPwdId: newPwdId, name: displayName, passcode: newPass, note: passCustomName });
+      } else if (passType === 6) {
+        storeRecurringPasscode({ lockId, keyboardPwdId: newPwdId, name: displayName, passcode: newPass, recurringType: passRecurringType, note: passCustomName });
+      }
+
       setMsg("Passcode added!");
       setNewPass("");
       setPassCustomName("");
+      setPassStartDate("");
+      setPassEndDate("");
+      setPassRecurringType("daily");
       setPassForm(false);
       refreshPass();
     } catch (e) {
@@ -244,6 +261,8 @@ export default function LockDetailPage() {
       });
       const data = await res.json();
       if (!data.ok) throw new Error(data.error);
+      removeCustomPasscode(lockId, passcodeId);
+      removeRecurringPasscode(lockId, passcodeId);
       refreshPass();
     } catch (e) {
       setErr(e instanceof Error ? e.message : "Failed");
@@ -602,6 +621,26 @@ export default function LockDetailPage() {
     }
   };
 
+  const customEntries = getCustomPasscodes(lockId);
+  const recurringEntries = getRecurringPasscodes(lockId);
+
+  const passTypeLabel = (p: Passcode): string => {
+    const custom = customEntries.find((e) => e.keyboardPwdId === p.keyboardPwdId || e.passcode === p.keyboardPwd);
+    const recurring = recurringEntries.find((e) => e.keyboardPwdId === p.keyboardPwdId || e.passcode === p.keyboardPwd);
+    if (custom) return `Custom · ${custom.name}`;
+    if (recurring) return `Recurring · ${recurring.recurringType === "daily" ? "Daily" : recurring.recurringType === "workday" ? "Mon–Fri" : "Weekend"}`;
+    switch (p.keyboardPwdType) {
+      case 1: return "One-time";
+      case 2: return "Permanent";
+      case 3: return "Period";
+      case 4: return "Delete";
+      case 5: return "Weekend Cyclic";
+      case 6: return "Daily Cyclic";
+      case 7: return "Workday Cyclic";
+      default: return `Type ${p.keyboardPwdType}`;
+    }
+  };
+
   const batteryColor = battery != null
     ? battery > 50 ? "text-success" : battery > 20 ? "text-warning" : "text-error"
     : "text-text-muted";
@@ -754,14 +793,39 @@ export default function LockDetailPage() {
                 <option value={5}>Custom</option>
                 <option value={6}>Recurring</option>
               </select>
-              {passType === 5 && (
+              {(passType === 5 || passType === 6) && (
                 <input
                   type="text"
-                  placeholder="Custom name (e.g., 'Weekend Access')"
+                  placeholder="Name (e.g., 'Weekend Access', 'Cleaner')"
                   value={passCustomName}
                   onChange={(e) => setPassCustomName(e.target.value)}
                   className="w-full px-3 py-2 rounded bg-card border border-border-card text-foreground text-sm focus:outline-none focus:border-focus-ring"
                 />
+              )}
+              {passType === 5 && (
+                <div className="grid grid-cols-2 gap-2">
+                  <label className="text-xs text-text-secondary font-body">
+                    Valid from
+                    <input
+                      type="datetime-local"
+                      value={passStartDate}
+                      onChange={(e) => setPassStartDate(e.target.value)}
+                      className="mt-1 w-full px-2 py-1.5 rounded bg-card border border-border-card text-foreground text-sm focus:outline-none focus:border-focus-ring"
+                    />
+                  </label>
+                  <label className="text-xs text-text-secondary font-body">
+                    Valid until
+                    <input
+                      type="datetime-local"
+                      value={passEndDate}
+                      onChange={(e) => setPassEndDate(e.target.value)}
+                      className="mt-1 w-full px-2 py-1.5 rounded bg-card border border-border-card text-foreground text-sm focus:outline-none focus:border-focus-ring"
+                    />
+                  </label>
+                </div>
+              )}
+              {passType === 5 && (
+                <p className="text-xs text-text-muted font-body">Leave empty for: now → 1 year from now</p>
               )}
               {passType === 6 && (
                 <select
@@ -769,8 +833,9 @@ export default function LockDetailPage() {
                   onChange={(e) => setPassRecurringType(e.target.value as "daily" | "weekend")}
                   className="w-full px-3 py-2 rounded bg-card border border-border-card text-foreground text-sm focus:outline-none focus:border-focus-ring"
                 >
-                  <option value="daily">Daily Cyclic</option>
-                  <option value="weekend">Weekend Cyclic</option>
+                  <option value="daily">Every day (Daily Cyclic)</option>
+                  <option value="workday">Mon–Fri (Workday Cyclic)</option>
+                  <option value="weekend">Sat–Sun (Weekend Cyclic)</option>
                 </select>
               )}
               <button type="submit" className="w-full py-1.5 rounded bg-accent text-white text-sm hover:bg-accent-hover font-body">Add Passcode</button>
@@ -787,7 +852,7 @@ export default function LockDetailPage() {
                     <div>
                       <span className="text-foreground font-mono text-sm">{p.keyboardPwd}</span>
                       <span className="text-text-muted text-xs ml-2 font-body">
-                        {p.keyboardPwdType === 2 ? "Permanent" : p.keyboardPwdType === 3 ? "Period" : p.keyboardPwdType === 1 ? "One-time" : `Type ${p.keyboardPwdType}`}
+                        {passTypeLabel(p)}{p.nickName ? ` · ${p.nickName}` : ""}
                       </span>
                     </div>
                     <div className="flex items-center gap-2">

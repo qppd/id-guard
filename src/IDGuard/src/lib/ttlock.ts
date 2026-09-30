@@ -425,7 +425,8 @@ export async function addPasscode(
   passcode: string,
   type: number,
   startDate?: number,
-  endDate?: number
+  endDate?: number,
+  name?: string
 ) {
   const params: { [key: string]: string } = {
     lockId: String(lockId),
@@ -433,6 +434,7 @@ export async function addPasscode(
     keyboardPwdType: String(type),
     addType: "2",
   };
+  if (name) params.keyboardPwdName = name;
   if (startDate) params.startDate = String(startDate);
   if (endDate) params.endDate = String(endDate);
   return apiPost<{ [key: string]: unknown }>(

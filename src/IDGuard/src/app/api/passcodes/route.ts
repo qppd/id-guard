@@ -16,13 +16,13 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const { action, lockId, passcode, type, startDate, endDate, passcodeId, passcodeName } = await req.json();
+  const { action, lockId, passcode, type, startDate, endDate, passcodeId, passcodeName, name } = await req.json();
 
   const result = await callWithAuth(async (token) => {
     const { addPasscode, deletePasscode, updatePasscode } = await import("@/lib/ttlock");
 
     if (action === "add") {
-      return addPasscode(token, lockId, passcode, type, startDate, endDate);
+      return addPasscode(token, lockId, passcode, type, startDate, endDate, name || passcodeName || undefined);
     }
     if (action === "delete") {
       return deletePasscode(token, lockId, passcodeId);
