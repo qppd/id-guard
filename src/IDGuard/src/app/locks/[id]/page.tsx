@@ -161,8 +161,10 @@ export default function LockDetailPage() {
   const [editPassEndDate, setEditPassEndDate] = useState("");
 
   // Batch delete records state
-  const [selectedRecords, setSelectedRecords] = useState<Set<number>>(new Set());
-  const [recordsFilter, setRecordsFilter] = useState<"all" | "success" | "failed">("all");
+  const [selectedSuccessRecords, setSelectedSuccessRecords] = useState<Set<number>>(new Set());
+  const [selectedFailedRecords, setSelectedFailedRecords] = useState<Set<number>>(new Set());
+  const [successRecordsPage, setSuccessRecordsPage] = useState(1);
+  const [failedRecordsPage, setFailedRecordsPage] = useState(1);
 
   // Rename form
   const [renameForm, setRenameForm] = useState(false);
@@ -302,7 +304,8 @@ export default function LockDetailPage() {
     setEditPassEndDate(p.endDate ? new Date(p.endDate).toISOString().slice(0, 16) : "");
   };
 
-  const handleDeleteSelectedRecords = async () => {
+  const handleDeleteSelectedRecords = async (type: "success" | "failed") => {
+    const selectedRecords = type === "success" ? selectedSuccessRecords : selectedFailedRecords;
     if (selectedRecords.size === 0) return;
     if (!confirm(`Delete ${selectedRecords.size} selected record(s)?`)) return;
     setMsg(""); setErr("");
@@ -315,20 +318,110 @@ export default function LockDetailPage() {
       const data = await res.json();
       if (!data.ok) throw new Error(data.error);
       setMsg("Records deleted!");
-      setSelectedRecords(new Set());
+      if (type === "success") setSelectedSuccessRecords(new Set());
+      else setSelectedFailedRecords(new Set());
       refreshRec();
     } catch (e) {
       setErr(e instanceof Error ? e.message : "Failed");
     }
   };
 
-  const toggleRecordSelection = (recordId: number) => {
-    setSelectedRecords((prev) => {
-      const next = new Set(prev);
-      if (next.has(recordId)) next.delete(recordId);
-      else next.add(recordId);
-      return next;
-    });
+  const toggleRecordSelection = (recordId: number, isSuccessful: boolean) => {
+    if (isSuccessful) {
+      setSelectedSuccessRecords((prev) => {
+        const next = new Set(prev);
+        if (next.has(recordId)) next.delete(recordId);
+        else next.add(recordId);
+        return next;
+      });
+    } else {
+      setSelectedFailedRecords((prev) => {
+        const next = new Set(prev);
+        if (next.has(recordId)) next.delete(recordId);
+        else next.add(recordId);
+        return next;
+      });
+    }
+  };
+
+  const renderRecordsList = (
+    recordsList: LockRecord[],
+    isSelected: Set<number>,
+    toggleSelection: (id: number) => void,
+    currentPage: number,
+    setPage: React.Dispatch<React.SetStateAction<number>>,
+    isSuccessful: boolean
+  ) => {
+    const totalPages = Math.ceil(recordsList.length / 50) || 1;
+    const paginatedRecords = recordsList.slice((currentPage - 1) * 50, currentPage * 50);
+    return (
+      <div className="mt-3">
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="text-sm font-heading font-semibold text-accent">
+            {isSuccessful ? "Successful Unlocks" : "Failed Attempts"} ({recordsList.length})
+          </h3>
+          {isSelected.size > 0 && (
+            <button
+              onClick={() => handleDeleteSelectedRecords(isSuccessful ? "success" : "failed")}
+              className="text-error hover:text-error text-xs font-body"
+            >
+              Delete {isSelected.size} selected
+            </button>
+          )}
+        </div>
+        <div className="space-y-1 max-h-80 overflow-y-auto">
+          {paginatedRecords.length === 0 ? (
+            <p className="text-text-muted text-sm text-center py-4 font-body">No records</p>
+          ) : (
+            paginatedRecords.map((r) => (
+              <div key={r.recordId} className="flex items-center justify-between bg-alt rounded px-3 py-2 text-sm">
+                <div className="flex items-center gap-2 min-w-0 flex-1">
+                  <input
+                    type="checkbox"
+                    checked={isSelected.has(r.recordId)}
+                    onChange={() => toggleSelection(r.recordId)}
+                    className="shrink-0 accent-accent"
+                  />
+                  <span className={`shrink-0 ${r.success ? "text-success" : "text-error"}`}>
+                    {r.success ? "Success" : "Failed"}
+                  </span>
+                  <span className="text-text-secondary font-body truncate">
+                    {recordTypeLabel[r.recordType] || `Type ${r.recordType}`}
+                  </span>
+                  {r.username && (
+                    <span className="text-text-muted text-xs font-body truncate">{r.username}</span>
+                  )}
+                </div>
+                <div className="flex items-center gap-3 shrink-0">
+                  <span className="text-text-muted text-xs font-body">
+                    {r.lockDate ? new Date(r.lockDate).toLocaleString() : "—"}
+                  </span>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+        {totalPages > 1 && (
+          <div className="flex items-center justify-center gap-3 mt-2 pt-2 border-t border-border-card">
+            <button
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={currentPage <= 1}
+              className="px-3 py-1 rounded bg-alt text-text-secondary text-xs border border-border-card hover:text-foreground disabled:opacity-50 font-body"
+            >
+              Previous
+            </button>
+            <span className="text-xs text-text-muted font-body">Page {currentPage} of {totalPages}</span>
+            <button
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              disabled={currentPage >= totalPages}
+              className="px-3 py-1 rounded bg-alt text-text-secondary text-xs border border-border-card hover:text-foreground disabled:opacity-50 font-body"
+            >
+              Next
+            </button>
+          </div>
+        )}
+      </div>
+    );
   };
 
   const handleCheckUpgrade = async () => {
@@ -915,94 +1008,28 @@ export default function LockDetailPage() {
             <span className="text-text-muted">{recordsExpanded ? "\u25B2" : "\u25BC"}</span>
           </button>
           <div className="flex items-center gap-2">
-            {selectedRecords.size > 0 && (
-              <button onClick={handleDeleteSelectedRecords} className="text-error hover:text-error text-xs font-body">Delete {selectedRecords.size} selected</button>
-            )}
             <button onClick={handleClearRecords} className="text-error hover:text-error text-xs font-body">Clear All</button>
           </div>
         </div>
         {recordsExpanded && (
-          <div className="mt-3">
-            {/* Filter tabs */}
-            <div className="flex gap-2 mb-3">
-              {(["all", "success", "failed"] as const).map((filter) => (
-                <button
-                  key={filter}
-                  onClick={() => setRecordsFilter(filter)}
-                  className={`px-3 py-1 rounded text-xs font-body transition-colors ${
-                    recordsFilter === filter
-                      ? "bg-accent text-white"
-                      : "bg-alt text-text-secondary border border-border-card hover:text-foreground"
-                  }`}
-                >
-                  {filter === "all" ? "All" : filter === "success" ? "Successful" : "Failed"}
-                </button>
-              ))}
-            </div>
-            <div className="space-y-1 max-h-96 overflow-y-auto">
-              {(() => {
-                const filtered = records.filter((r) => {
-                  if (recordsFilter === "all") return true;
-                  if (recordsFilter === "success") return r.success === 1;
-                  return r.success === 0;
-                });
-                return filtered;
-              })().length === 0 ? (
-                <p className="text-text-muted text-sm text-center py-4 font-body">No records</p>
-              ) : (
-                (() => {
-                  const filtered = records.filter((r) => {
-                    if (recordsFilter === "all") return true;
-                    if (recordsFilter === "success") return r.success === 1;
-                    return r.success === 0;
-                  });
-                  return filtered.map((r) => (
-                    <div key={r.recordId} className="flex items-center justify-between bg-alt rounded px-3 py-2 text-sm">
-                      <div className="flex items-center gap-2 min-w-0 flex-1">
-                        <input
-                          type="checkbox"
-                          checked={selectedRecords.has(r.recordId)}
-                          onChange={() => toggleRecordSelection(r.recordId)}
-                          className="shrink-0 accent-accent"
-                        />
-                        <span className={`shrink-0 ${r.success ? "text-success" : "text-error"}`}>
-                          {r.success ? "Success" : "Failed"}
-                        </span>
-                        <span className="text-text-secondary font-body truncate">
-                          {recordTypeLabel[r.recordType] || `Type ${r.recordType}`}
-                        </span>
-                        {r.username && (
-                          <span className="text-text-muted text-xs font-body truncate">{r.username}</span>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-3 shrink-0">
-                        <span className="text-text-muted text-xs font-body">
-                          {r.lockDate ? new Date(r.lockDate).toLocaleString() : "—"}
-                        </span>
-                      </div>
-                    </div>
-                  ));
-                })()
-              )}
-            </div>
-            {/* Pagination */}
-            <div className="flex items-center justify-center gap-3 mt-3 pt-2 border-t border-border-card">
-              <button
-                onClick={() => setRecordsPage((p) => Math.max(1, p - 1))}
-                disabled={recordsPage <= 1}
-                className="px-3 py-1 rounded bg-alt text-text-secondary text-xs border border-border-card hover:text-foreground disabled:opacity-50 font-body"
-              >
-                Previous
-              </button>
-              <span className="text-xs text-text-muted font-body">Page {recordsPage}</span>
-              <button
-                onClick={() => setRecordsPage((p) => p + 1)}
-                disabled={records.length < 50}
-                className="px-3 py-1 rounded bg-alt text-text-secondary text-xs border border-border-card hover:text-foreground disabled:opacity-50 font-body"
-              >
-                Next
-              </button>
-            </div>
+          <div className="mt-3 space-y-6">
+            {renderRecordsList(
+              records.filter((r) => r.success === 1),
+              selectedSuccessRecords,
+              (id) => toggleRecordSelection(id, true),
+              successRecordsPage,
+              setSuccessRecordsPage,
+              true
+            )}
+            <div className="border-t border-border-card" />
+            {renderRecordsList(
+              records.filter((r) => r.success === 0),
+              selectedFailedRecords,
+              (id) => toggleRecordSelection(id, false),
+              failedRecordsPage,
+              setFailedRecordsPage,
+              false
+            )}
           </div>
         )}
       </div>
