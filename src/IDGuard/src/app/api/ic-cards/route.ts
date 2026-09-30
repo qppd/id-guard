@@ -12,7 +12,6 @@ export async function GET(req: NextRequest) {
     return listAllICCards(token, lockId);
   });
   if (!result.ok) return result.response;
-  // TTLock IC card list may return array directly or wrapped in data/list
   const raw = result.data as unknown;
   let list: unknown[];
   if (Array.isArray(raw)) {
