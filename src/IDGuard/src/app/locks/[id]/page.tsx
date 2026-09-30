@@ -668,8 +668,31 @@ export default function LockDetailPage() {
       case 5: return "Weekend Cyclic";
       case 6: return "Daily Cyclic";
       case 7: return "Workday Cyclic";
+      case 8: return "Monday Cyclic";
+      case 9: return "Tuesday Cyclic";
+      case 10: return "Wednesday Cyclic";
+      case 11: return "Thursday Cyclic";
+      case 12: return "Friday Cyclic";
+      case 13: return "Saturday Cyclic";
+      case 14: return "Sunday Cyclic";
       default: return `Type ${p.keyboardPwdType}`;
     }
+  };
+
+  // TTLock encodes cyclic active hours in the time-of-day of startDate/endDate;
+  // Period passcodes use the full date range. One-time/Permanent/Delete: no schedule line.
+  const CYCLIC_TTLOCK_TYPES = new Set([5, 6, 7, 8, 9, 10, 11, 12, 13, 14]);
+  const passScheduleLabel = (p: Passcode): string | null => {
+    if (!p.startDate || !p.endDate) return null;
+    const fmtTime = (t: number) => new Date(t).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+    const fmtDate = (t: number) => new Date(t).toLocaleDateString();
+    if (CYCLIC_TTLOCK_TYPES.has(p.keyboardPwdType)) {
+      return `Daily ${fmtTime(p.startDate)} – ${fmtTime(p.endDate)}`;
+    }
+    if (p.keyboardPwdType === 3) {
+      return `${fmtDate(p.startDate)} – ${fmtDate(p.endDate)}`;
+    }
+    return null;
   };
 
   const batteryColor = battery != null
@@ -927,6 +950,9 @@ export default function LockDetailPage() {
                       <span className="text-text-muted text-xs ml-2 font-body">
                         {passTypeLabel(p)}{p.nickName ? ` · ${p.nickName}` : ""}
                       </span>
+                      {passScheduleLabel(p) && (
+                        <p className="text-text-muted text-xs font-body">{passScheduleLabel(p)}</p>
+                      )}
                     </div>
                     <div className="flex items-center gap-2">
                       <button onClick={() => handleStartEdit(p)} className="text-accent hover:text-accent text-xs font-body">Edit</button>
